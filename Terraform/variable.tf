@@ -1,6 +1,11 @@
 variable "aws_region" {
   type    = string
-  default = "us-east-1"
+  default = "eu-north-1"
+}
+
+variable "cluster_version" {
+  type    = string
+  default = "1.35"
 }
 
 variable "environment" {
@@ -10,20 +15,15 @@ variable "environment" {
 
 variable "cluster_name" {
   type    = string
-  default = "staging-cluster"
+  default = "cloudaura-eks-cluster"
 }
 
-variable "cluster_version" {
-  type    = string
-  default = "1.35" # 🟢 Set to Kubernetes Latest v1.35
+variable "domain_name" {
+  type     = string
+  default  = "cloudaura.duckdns.org"
 }
 
-variable "vpc_cidr" {
-  type    = string
-  default = "10.0.0.0/16"
-}
-
-variable "duckdns_domain" {
-  type    = string
-  default = "cloudaura.duckdns.org"
+variable "availability_zones" {
+  type    = list(string)
+  default = ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
 }
