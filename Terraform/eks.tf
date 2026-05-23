@@ -7,6 +7,13 @@ module "eks" {
 
   authentication_mode = "API"
 
+  # 🟢 FIX 2: Module ko bolein ke CloudWatch log group pehle se hai, naya na banaye
+  create_cloudwatch_log_group = false
+
+  # 🟢 FIX 3: Module ko bolein ke KMS key aur alias bhi naya na banaye, default handle kare
+  create_kms_key              = false
+  cluster_encryption_config   = {}
+
   cluster_endpoint_public_access       = true
   cluster_endpoint_private_access      = true
   cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
