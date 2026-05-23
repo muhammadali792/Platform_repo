@@ -143,8 +143,6 @@ resource "aws_eks_access_entry" "karpenter_nodes" {
   cluster_name      = module.eks.cluster_name
   principal_arn     = module.karpenter_iam.node_iam_role_arn
   type              = "EC2_LINUX"
-  kubernetes_groups = ["system:nodes"]
-  user_name         = "system:node:{{EC2PrivateDNSName}}"
 
   depends_on = [module.eks, module.karpenter_iam]
 }
