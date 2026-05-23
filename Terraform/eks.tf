@@ -7,10 +7,10 @@ module "eks" {
 
   authentication_mode = "API"
 
-  # 🟢 FIX 2: Module ko bolein ke CloudWatch log group pehle se hai, naya na banaye
+  # Module ko bolein ke CloudWatch log group pehle se hai, naya na banaye
   create_cloudwatch_log_group = false
 
-  # 🟢 FIX 3: Module ko bolein ke KMS key aur alias bhi naya na banaye, default handle kare
+  # Module ko bolein ke KMS key aur alias bhi naya na banaye, default handle kare
   create_kms_key              = false
   cluster_encryption_config   = {}
 
@@ -32,9 +32,10 @@ module "eks" {
       most_recent = true
     }
     aws-ebs-csi-driver = {
-      most_recent = true
-      
-      # 🟢 FIX: Toleration aur Configuration values add karein
+      most_recent    = true
+      before_compute = false # 👈 🟢 Module pehle compute aur external resources ready karega, phir addon deploy hoga
+
+      # Toleration aur Configuration values add hain taake system node group par pods chal sakein
       configuration_values = jsonencode({
         controller = {
           tolerations = [
@@ -86,9 +87,9 @@ module "eks" {
   }
 
   tags = {
-    Environment               = var.environment
-    ManagedBy                 = "Terraform"
-    "karpenter.sh/discovery"  = var.cluster_name
+    Environment              = var.environment
+    ManagedBy                = "Terraform"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
@@ -159,9 +160,9 @@ module "karpenter_iam" {
 # Access Entry — Karpenter provisioned nodes
 # ─────────────────────────────────────────────
 resource "aws_eks_access_entry" "karpenter_nodes" {
-  cluster_name  = module.eks.cluster_name
-  principal_arn = module.karpenter_iam.node_iam_role_arn
-  type          = "EC2_LINUX"
+  cluster_name      = module.eks.cluster_name
+  principal_arn     = module.karpenter_iam.node_iam_role_arn
+  type              = "EC2_LINUX"
   kubernetes_groups = ["system:nodes"]
   user_name         = "system:node:{{EC2PrivateDNSName}}"
 
