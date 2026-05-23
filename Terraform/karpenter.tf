@@ -9,7 +9,7 @@ resource "helm_release" "karpenter" {
 
   # Industry Standard Template Loading
   values = [
-    templatefile("${path.module}/templates/karpenter-values.yaml", {
+    templatefile("${path.module}/templates/karpenter-values.yml", {
       cluster_name     = var.cluster_name
       cluster_endpoint = module.eks.cluster_endpoint
       iam_role_arn     = module.karpenter_iam.iam_role_arn
@@ -20,7 +20,7 @@ resource "helm_release" "karpenter" {
 }
 
 resource "kubectl_manifest" "node_class" {
-  yaml_body = templatefile("${path.module}/templates/ec2-node-class.yaml", {
+  yaml_body = templatefile("${path.module}/templates/ec2-node-class.yml", {
     cluster_name       = var.cluster_name
     node_iam_role_name = module.karpenter_iam.node_iam_role_name
     environment        = var.environment
@@ -31,7 +31,7 @@ resource "kubectl_manifest" "node_class" {
 }
 
 resource "kubectl_manifest" "node_pool_general" {
-  yaml_body = templatefile("${path.module}/templates/node-pool.yaml", {})
+  yaml_body = templatefile("${path.module}/templates/node-pool.yml", {})
 
   depends_on = [kubectl_manifest.node_class]
 }
