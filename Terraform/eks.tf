@@ -23,25 +23,12 @@ module "eks" {
   cluster_addons = {
     coredns = {
       most_recent = true
-      configuration_values = jsonencode({
-        nodeSelector = { role = "system" }
-      })
     }
     kube-proxy = {
       most_recent = true
     }
     vpc-cni = {
       most_recent = true
-    }
-    aws-ebs-csi-driver = {
-      most_recent                 = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
-      configuration_values = jsonencode({
-        controller = {
-          nodeSelector = { role = "system" }
-        }
-      })
     }
     eks-pod-identity-agent = {
       most_recent = true
@@ -63,6 +50,12 @@ module "eks" {
       labels = {
         role = "system"
       }
+
+      taints = [{
+        key    = "CriticalAddonsOnly"
+        value  = "true"
+        effect = "NO_SCHEDULE"
+      }]
     }
   }
 
@@ -89,7 +82,6 @@ data "aws_iam_policy_document" "ebs_csi_pod_identity_assume" {
 resource "aws_iam_role" "ebs_csi_pod_identity" {
   name               = "${var.cluster_name}-ebs-csi-pod-identity-role"
   assume_role_policy = data.aws_iam_policy_document.ebs_csi_pod_identity_assume.json
-
   tags = {
     Environment = var.environment
   }
@@ -105,8 +97,22 @@ resource "aws_eks_pod_identity_association" "ebs_csi" {
   namespace       = "kube-system"
   service_account = "ebs-csi-controller-sa"
   role_arn        = aws_iam_role.ebs_csi_pod_identity.arn
+  depends_on      = [module.eks]
+}
 
-  depends_on = [module.eks]
+# EBS CSI addon — IAM ready hone ke baad install hoga
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name                = module.eks.cluster_name
+  addon_name                  = "aws-ebs-csi-driver"
+  most_recent                 = true
+  resolve_conflicts_on_create = "OVERWRITE"
+  resolve_conflicts_on_update = "OVERWRITE"
+
+  depends_on = [
+    module.eks,
+    aws_eks_pod_identity_association.ebs_csi,
+    aws_iam_role_policy_attachment.ebs_csi_pod_identity
+  ]
 }
 
 # ─────────────────────────────────────────────
