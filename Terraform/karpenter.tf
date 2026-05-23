@@ -20,7 +20,7 @@ resource "helm_release" "karpenter" {
 }
 
 resource "kubectl_manifest" "node_class" {
-  yaml_body = templatefile("${path.module}/templates/ec2-node-class.yml", {
+  yaml_body = templatefile("${path.module}/templates/ec2-nodes-class.yml", {
     cluster_name       = var.cluster_name
     node_iam_role_name = module.karpenter_iam.node_iam_role_name
     environment        = var.environment
