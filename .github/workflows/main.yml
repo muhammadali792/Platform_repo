@@ -1,7 +1,9 @@
 name: "EKS Infrastructure DESTROY"
 
 on:
-  workflow_dispatch:  # Sirf manually trigger hogi
+  push:
+    branches:
+      - main
 
 permissions:
   id-token: write
