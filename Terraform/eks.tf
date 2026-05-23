@@ -127,22 +127,11 @@ module "karpenter_iam" {
   create_pod_identity_association = true
 
   create_node_iam_role = true
-  create_access_entry  = false
+  create_access_entry  = true
 
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
   }
 
   depends_on = [module.eks]
-}
-
-# ─────────────────────────────────────────────
-# Access Entry — Karpenter provisioned nodes
-# ─────────────────────────────────────────────
-resource "aws_eks_access_entry" "karpenter_nodes" {
-  cluster_name      = module.eks.cluster_name
-  principal_arn     = module.karpenter_iam.node_iam_role_arn
-  type              = "EC2_LINUX"
-
-  depends_on = [module.eks, module.karpenter_iam]
 }
