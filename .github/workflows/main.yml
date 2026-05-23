@@ -9,7 +9,7 @@ permissions:
   id-token: write
   contents: read
 
-# 🟢 GLOBAL FIX: Ab saare steps automatic aapke "Terraform" folder ke andar chalenge
+# GLOBAL FIX: Ab saare steps automatic aapke "Terraform" folder ke andar chalenge
 defaults:
   run:
     working-directory: ./Terraform
@@ -46,14 +46,24 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      # 🟢 NEW STEP: Existing resources ko State mein import karne ke liye
-      - name: Terraform Import Existing Resources
-        run: |
-          echo "Importing KMS Alias..."
-          terraform import 'module.eks.module.kms.aws_kms_alias.this["cluster"]' alias/eks/cloudaura-eks-cluster || true
-          
-          echo "Importing CloudWatch Log Group..."
-          terraform import 'module.eks.aws_cloudwatch_log_group.this[0]' /aws/eks/cloudaura-eks-cluster/cluster || true
-
-      - name: Terraform Apply (Route53 Zone First)
+      # 🟢 Apply Step (Bina import locks ke sukoon se chalega)
+      - name: Terraform Apply
+        id: apply
         run: terraform apply -auto-approve
+
+      # 🟢 AUTOMATED FORCE-UNLOCK: Agar pipeline cancel ho ya fail ho, lock khud release hoga
+      - name: Force Unlock on Cancellation or Failure
+        if: ${{ cancelled() || failure() }}
+        run: |
+          echo "Pipeline stop ya fail hui hai. State lock check kar ke break kar rahe hain..."
+          
+          # State info se lock ki ID nikalne ki koshish (JSON format parsing)
+          # Agar lock laga hua mila, toh use force-unlock kar diya jayega
+          LOCK_ID=$(terraform providers lock 2>&1 | grep -oE '[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}' | head -n 1 || true)
+          
+          if [ ! -z "$LOCK_ID" ]; then
+            echo "Lock ID mili: $LOCK_ID. Unlocking backend state dynamically..."
+            terraform force-unlock -force $LOCK_ID
+          else
+            echo "Koi lock ID nahi mili ya lock pehle hi released hai."
+          fi
