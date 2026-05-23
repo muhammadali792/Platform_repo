@@ -127,8 +127,6 @@ module "karpenter_iam" {
   namespace                       = "karpenter"
   service_account                 = "karpenter"
 
-  create_interruption_queue = true  # SQS queue banegi
-
   create_node_iam_role = true
   create_access_entry  = true
 
