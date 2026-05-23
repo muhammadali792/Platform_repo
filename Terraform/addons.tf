@@ -61,6 +61,7 @@ module "eks_addons" {
               "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                 = "10254"
               "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"             = "HTTP"
               "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                   = "ip"
+            }
           }
 
           config = {
@@ -73,7 +74,7 @@ module "eks_addons" {
   }
 
   # =============================================================================
-  # ARGOCD — Karpenter Node
+  # ARGOCD — Secure Architecture (No Insecure Flags + SSL Redirect)
   # =============================================================================
   enable_argocd = true
   argocd = {
@@ -81,11 +82,26 @@ module "eks_addons" {
     values = [
       yamlencode({
         server = {
-          extraArgs = ["--insecure"]
+          # 🟢 `--insecure` hata diya hai taake internal TLS active ho jaye
+          extraArgs = []
           ingress = {
             enabled          = true
             ingressClassName = "nginx"
             hosts            = ["argocd.${var.domain_name}"]
+            annotations = {
+              # 🟢 SSL Redirection aur Cert-Manager integration annotations
+              "cert-manager.io/cluster-issuer"              = "letsencrypt-duckdns"
+              "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
+              "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+              # ArgoCD internal TLS use kar raha hai, isliye backend protocol HTTPS hona chahiye
+              "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
+            }
+            tls = [
+              {
+                secretName = "argocd-server-tls"
+                hosts      = ["argocd.${var.domain_name}"]
+              }
+            ]
           }
           metrics = {
             enabled        = true
@@ -129,7 +145,7 @@ module "eks_addons" {
   enable_external_secrets = true
 
   # =============================================================================
-  # PROMETHEUS + GRAFANA — Karpenter Node
+  # PROMETHEUS + GRAFANA — Secure Ingress Setup
   # =============================================================================
   enable_kube_prometheus_stack = true
   kube_prometheus_stack = {
@@ -140,6 +156,18 @@ module "eks_addons" {
             enabled          = true
             ingressClassName = "nginx"
             hosts            = ["grafana.${var.domain_name}"]
+            annotations = {
+              # 🟢 Automatic HTTP to HTTPS redirect & SSL cert matching
+              "cert-manager.io/cluster-issuer"              = "letsencrypt-duckdns"
+              "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
+              "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+            }
+            tls = [
+              {
+                secretName = "grafana-tls-cert"
+                hosts      = ["grafana.${var.domain_name}"]
+              }
+            ]
           }
         }
         prometheus = {
@@ -147,6 +175,18 @@ module "eks_addons" {
             enabled          = true
             ingressClassName = "nginx"
             hosts            = ["prometheus.${var.domain_name}"]
+            annotations = {
+              # 🟢 Prometheus Dashboard protection & SSL redirection
+              "cert-manager.io/cluster-issuer"              = "letsencrypt-duckdns"
+              "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
+              "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
+            }
+            tls = [
+              {
+                secretName = "prometheus-tls-cert"
+                hosts      = ["prometheus.${var.domain_name}"]
+              }
+            ]
           }
         }
       })
