@@ -10,6 +10,10 @@ on:
 permissions:
   id-token: write
   contents: read
+🟢 Global working directory set kar di takay har step "Terraform/" folder ke andar chale
+defaults:
+  run:
+    working-directory: ./Terraform
 
 jobs:
   terraform_deploy:
