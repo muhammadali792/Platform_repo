@@ -46,5 +46,14 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+      # 🟢 NEW STEP: Existing resources ko State mein import karne ke liye
+      - name: Terraform Import Existing Resources
+        run: |
+          echo "Importing KMS Alias..."
+          terraform import 'module.eks.module.kms.aws_kms_alias.this["cluster"]' alias/eks/cloudaura-eks-cluster || true
+          
+          echo "Importing CloudWatch Log Group..."
+          terraform import 'module.eks.aws_cloudwatch_log_group.this[0]' /aws/eks/cloudaura-eks-cluster/cluster || true
+
       - name: Terraform Apply (Route53 Zone First)
         run: terraform apply -auto-approve
