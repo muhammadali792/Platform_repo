@@ -1,9 +1,7 @@
-name: "EKS Infrastructure Pipeline"
+name: "EKS Infrastructure DESTROY"
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:  # Sirf manually trigger hogi
 
 permissions:
   id-token: write
@@ -14,8 +12,8 @@ defaults:
     working-directory: ./Terraform
 
 jobs:
-  terraform_deploy:
-    name: "Terraform Apply"
+  terraform_destroy:
+    name: "Terraform Destroy"
     runs-on: ubuntu-latest
 
     steps:
@@ -45,23 +43,14 @@ jobs:
             -backend-config="key=cloudaura/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}"
 
-      - name: Reset Stuck Helm Releases
+      - name: Uninstall Helm Releases
         run: |
-          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name cloudaura-eks-clusterv2
-          helm rollback karpenter -n karpenter || helm uninstall karpenter -n karpenter || true
-          helm rollback cert-manager -n cert-manager || helm uninstall cert-manager -n cert-manager || true
-          helm rollback ingress-nginx -n ingress-nginx || helm uninstall ingress-nginx -n ingress-nginx || true
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name cloudaura-eks-clusterv2 || true
+          helm uninstall karpenter -n karpenter || true
+          helm uninstall cert-manager -n cert-manager || true
+          helm uninstall ingress-nginx -n ingress-nginx || true
+          helm uninstall kube-prometheus-stack -n monitoring || true
+          helm uninstall argocd -n argocd || true
 
-      - name: Import Existing Resources
-        run: |
-          terraform import aws_eks_addon.ebs_csi cloudaura-eks-clusterv2:aws-ebs-csi-driver || true
-          terraform import helm_release.karpenter karpenter/karpenter || true
-          terraform import helm_release.cert_manager cert-manager/cert-manager || true
-          terraform import 'module.eks_addons.module.ingress_nginx.helm_release.this[0]' ingress-nginx/ingress-nginx || true
-          terraform import 'module.eks_addons.module.kube_prometheus_stack.helm_release.this[0]' kube-prometheus-stack/kube-prometheus-stack || true
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
