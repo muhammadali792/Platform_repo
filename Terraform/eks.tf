@@ -33,7 +33,28 @@ module "eks" {
     }
     aws-ebs-csi-driver = {
       most_recent = true
-      # 🟢 Note: Service account ARN yahan se hata diya hai, ab yeh Pod Identity se chalega
+      
+      # 🟢 FIX: Toleration aur Configuration values add karein
+      configuration_values = jsonencode({
+        controller = {
+          tolerations = [
+            {
+              key      = "CriticalAddonsOnly"
+              operator = "Exists"
+              effect   = "NoSchedule"
+            }
+          ]
+        }
+        node = {
+          tolerations = [
+            {
+              key      = "CriticalAddonsOnly"
+              operator = "Exists"
+              effect   = "NoSchedule"
+            }
+          ]
+        }
+      })
     }
     eks-pod-identity-agent = {
       most_recent = true
