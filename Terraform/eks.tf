@@ -100,7 +100,6 @@ resource "aws_eks_pod_identity_association" "ebs_csi" {
   depends_on      = [module.eks]
 }
 
-# EBS CSI addon — IAM ready hone ke baad install hoga
 resource "aws_eks_addon" "ebs_csi" {
   cluster_name                = module.eks.cluster_name
   addon_name                  = "aws-ebs-csi-driver"
@@ -125,8 +124,10 @@ module "karpenter_iam" {
 
   enable_pod_identity             = true
   create_pod_identity_association = true
-  namespace       = "karpenter"
-  service_account = "karpenter"
+  namespace                       = "karpenter"
+  service_account                 = "karpenter"
+
+  create_interruption_queue = true  # SQS queue banegi
 
   create_node_iam_role = true
   create_access_entry  = true
