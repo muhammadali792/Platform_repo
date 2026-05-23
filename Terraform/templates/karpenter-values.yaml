@@ -1,0 +1,31 @@
+settings:
+  clusterName: ${cluster_name}
+  clusterEndpoint: ${cluster_endpoint}
+  interruptionQueue: ${cluster_name}
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: ${iam_role_arn}
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+tolerations:
+  - key: "CriticalAddonsOnly"
+    operator: "Exists"
+    effect: "NoSchedule"
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - system
+podDisruptionBudget:
+  maxUnavailable: 1
+replicas: 2
