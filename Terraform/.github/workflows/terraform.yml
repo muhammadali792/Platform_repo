@@ -36,18 +36,19 @@ jobs:
             -backend-config="key=cloudaura/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}" \
             -backend-config="use_lockfile=true"
-       - name: Terraform Apply (Route53 Zone First)
-        run: |
-          terraform fmt
-        - name: Terraform Apply (Route53 Zone First)
-        run: |
-          terraform validate
-      - name: Terraform Apply (Route53 Zone First)
-        run: |
-          terraform apply -auto-approve
 
-      #- name: Show Nameservers
-       # run: terraform output name_servers
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Apply (Route53 Zone First)
+        run: terraform apply -auto-approve
+
+      # 💡 Senior Tip: Agar outputs dekhne hain toh formal standard yeh hai:
+      # - name: Show Nameservers
+      #   run: terraform output name_servers
 
       # Full apply tab run karo jab nameservers domain registrar pe update ho jayein
       # - name: Terraform Apply (Full)
