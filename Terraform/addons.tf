@@ -114,14 +114,14 @@ module "eks_addons" {
   }
 
   # =============================================================================
-   METRICS SERVER — [DISABLED]
+  # METRICS SERVER — [DISABLED]
    =============================================================================
-   enable_metrics_server = true
+  enable_metrics_server = true
 
   # =============================================================================
-   EXTERNAL SECRETS — [DISABLED]
+  # EXTERNAL SECRETS — [DISABLED]
    =============================================================================
-   enable_external_secrets = true
+  enable_external_secrets = true
 
   # =============================================================================
   # PROMETHEUS + GRAFANA — [DISABLED]
