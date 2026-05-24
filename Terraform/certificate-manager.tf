@@ -5,7 +5,7 @@ resource "helm_release" "cert_manager" {
   version          = "1.20.2" # 🟢 Artifact Hub ke mutabik naya stable version
   namespace        = "cert-manager"
   create_namespace = true
-
+  timeout = 600
   values = [<<-EOT
     crds:
       enabled: true # 🟢 Naye cert-manager versions mein installCRDs ki jagah crds.enabled use hota hai
