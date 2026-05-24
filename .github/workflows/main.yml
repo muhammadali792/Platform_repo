@@ -1,4 +1,4 @@
-name: "EKS Infrastructure DESTROY"
+name: "EKS Infrastructure Pipeline"
 
 on:
   push:
@@ -14,8 +14,8 @@ defaults:
     working-directory: ./Terraform
 
 jobs:
-  terraform_destroy:
-    name: "Terraform Destroy"
+  terraform_deploy:
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
 
     steps:
@@ -29,8 +29,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Force Clean S3 Native Lockfile
-        run: |
-          aws s3 rm s3://${{ vars.TF_STATE_BUCKET }}/cloudaura/terraform.tfstate.lockfile || true
+        run: aws s3 rm s3://${{ vars.TF_STATE_BUCKET }}/cloudaura/terraform.tfstate.lockfile || true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -39,20 +38,24 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
-            -backend-config="key=cloudaura/terraform.tfstate" \
-            -backend-config="region=${{ vars.AWS_REGION }}"
+        run: terraform init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=cloudaura/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
 
-      - name: Uninstall Helm Releases
-        run: |
-          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name cloudaura-eks-clusterv2 || true
-          helm uninstall karpenter -n karpenter || true
-          helm uninstall cert-manager -n cert-manager || true
-          helm uninstall ingress-nginx -n ingress-nginx || true
-          helm uninstall kube-prometheus-stack -n monitoring || true
-          helm uninstall argocd -n argocd || true
+      - name: Terraform Validate
+        run: terraform validate
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+      - name: Phase 1 — Security Group
+        run: terraform apply -target=security.tf -auto-approve
+
+      - name: Phase 2 — VPC
+        run: terraform apply -target=vpc.tf -auto-approve
+
+      - name: Phase 3 — EKS
+        run: terraform apply -target=eks.tf -auto-approve
+
+      - name: Phase 4 — IAM
+        run: terraform apply -target=iam.tf -auto-approve
+      - name: Phase 5 — Karpenter
+        run: terraform apply -target=karpenter.tf -auto-approve
+
+     # - name: Phase 6 — Remaining Addons
+     #   run: terraform apply -auto-approve
