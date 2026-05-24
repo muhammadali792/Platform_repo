@@ -10,7 +10,6 @@ resource "helm_release" "cert_manager" {
   values = [<<-EOT
     crds:
       enabled: true
-    # Root level nodeSelector aur tolerations zyada reliable hote hain
     nodeSelector:
       role: system
     tolerations:
@@ -23,11 +22,12 @@ resource "helm_release" "cert_manager" {
   depends_on = [module.eks]
 }
 
-resource "helm_release" "cert_manager_duckdns" {
+resource "helm_release" "cert_manager_webhook_duckdns" {
   name       = "cert-manager-webhook-duckdns"
-  repository = "https://ebrianne.github.io/helm-charts"
+  # 🟢 Fairwinds repository (Valid URL)
+  repository = "https://fairwindsops.github.io/charts"
   chart      = "cert-manager-webhook-duckdns"
-  version    = "0.1.2"
+  version    = "1.0.0" 
   namespace  = "cert-manager"
 
   values = [<<-EOT
@@ -59,7 +59,7 @@ type: Opaque
 stringData:
   token: "896a3c54-360c-4a20-8d25-e421eeccf181"
 YAML
-  depends_on = [helm_release.cert_manager_duckdns]
+  depends_on = [helm_release.cert_manager_webhook_duckdns]
 }
 
 resource "kubectl_manifest" "letsencrypt_issuer" {
