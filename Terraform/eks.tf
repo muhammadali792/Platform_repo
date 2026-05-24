@@ -127,6 +127,7 @@ module "karpenter_iam" {
 
   create_node_iam_role = true
   create_access_entry  = true
+  create_instance_profile = true
 
   node_iam_role_additional_policies = {
     AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
