@@ -1,7 +1,7 @@
 settings:
   clusterName: ${cluster_name}
   clusterEndpoint: ${cluster_endpoint}
-  interruptionQueue: ${cluster_name}
+  interruptionQueue: ${cluster_nam}
 serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: ${iam_role_arn}
