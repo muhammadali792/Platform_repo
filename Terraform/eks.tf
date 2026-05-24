@@ -41,7 +41,7 @@ module "eks" {
 
       min_size     = 1
       max_size     = 3
-      desired_size = 2
+      desired_size = 4
 
       additional_security_group_ids = [aws_security_group.additional_node_sg.id]
 
