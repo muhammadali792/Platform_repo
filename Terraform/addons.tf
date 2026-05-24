@@ -8,9 +8,12 @@ module "eks_addons" {
   oidc_provider_arn = module.eks.oidc_provider_arn
 
   # =============================================================================
-  # AWS LOAD BALANCER CONTROLLER — [DISABLED]
+  # AWS LOAD BALANCER CONTROLLER — [ENABLED]
   # =============================================================================
   enable_aws_load_balancer_controller = true
+  aws_load_balancer_controller = {
+    role_name = "${var.cluster_name}-aws-lbc"
+  }
 
   # =============================================================================
   # NGINX INGRESS + NLB — [ACTIVE]
@@ -20,9 +23,7 @@ module "eks_addons" {
     values = [
       yamlencode({
         controller = {
-          # Karpenter nodes par burden kam karne ke liye replicas 3 se 2 kar di hain
           replicaCount = 2
-
           topologySpreadConstraints = [
             {
               maxSkew           = 1
@@ -35,26 +36,23 @@ module "eks_addons" {
               }
             }
           ]
-
           resources = {
             requests = { cpu = "100m", memory = "128Mi" }
             limits   = { cpu = "200m", memory = "256Mi" }
           }
-
           service = {
             type                  = "LoadBalancer"
             externalTrafficPolicy = "Local"
             annotations = {
-              "service.beta.kubernetes.io/aws-load-balancer-type"                               = "nlb"
+              "service.beta.kubernetes.io/aws-load-balancer-type"                                 = "nlb"
               "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
               "service.beta.kubernetes.io/aws-load-balancer-scheme"                                = "internet-facing"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-path"                      = "/healthz"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                      = "10254"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"                  = "HTTP"
-              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                        = "ip"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-path"                     = "/healthz"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                     = "10254"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"                 = "HTTP"
+              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                       = "ip"
             }
           }
-
           config = {
             use-forwarded-headers      = "true"
             compute-full-forwarded-for = "true"
@@ -65,7 +63,7 @@ module "eks_addons" {
   }
 
   # =============================================================================
-  # ARGOCD — [ACTIVE WITH FIXED INGRESS LIST FORMAT]
+  # ARGOCD — [ACTIVE]
   # =============================================================================
   enable_argocd = true
   argocd = {
@@ -73,17 +71,15 @@ module "eks_addons" {
     values = [
       yamlencode({
         server = {
-          extraArgs = []
           ingress = {
             enabled          = true
             ingressClassName = "nginx"
-            # 🟢 FIX: Ab yeh yamlencode ho kar sahi YAML list array [- "argocd.yourdomain"] banega
-            hosts            = ["argocd.${var.domain_name}"] 
+            hosts            = ["argocd.${var.domain_name}"]
             annotations = {
-              "cert-manager.io/cluster-issuer"               = "letsencrypt-duckdns"
-              "nginx.ingress.kubernetes.io/ssl-redirect"     = "true"
+              "cert-manager.io/cluster-issuer"             = "letsencrypt-prod"
+              "nginx.ingress.kubernetes.io/ssl-redirect"       = "true"
               "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
-              "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
+              "nginx.ingress.kubernetes.io/backend-protocol"   = "HTTPS"
             }
             tls = [
               {
@@ -92,46 +88,16 @@ module "eks_addons" {
               }
             ]
           }
-          metrics = {
-            enabled        = false
-            serviceMonitor = { enabled = false }
-          }
-        }
-        controller = {
-          metrics = {
-            enabled        = false
-            serviceMonitor = { enabled = false }
-          }
-        }
-        repoServer = {
-          metrics = {
-            enabled        = false
-            serviceMonitor = { enabled = false }
-          }
         }
       })
     ]
   }
-  # =============================================================================
-  # METRICS SERVER — [ACTIVE]
-  # =============================================================================
-  enable_metrics_server = true # 🟢 Shuru se '#' hata diya, ab yeh enable ho gaya hai
 
   # =============================================================================
-  # EXTERNAL SECRETS — [ACTIVE]
+  # CORE ADDONS
   # =============================================================================
-  enable_external_secrets = true # 🟢 S
-
-  # =============================================================================
-  # PROMETHEUS + GRAFANA — [DISABLED]
-  # =============================================================================
-  # enable_kube_prometheus_stack = true
-
-  # =============================================================================
-  # STORAGE DRIVERS — [DISABLED]
-  # =============================================================================
-  # enable_aws_efs_csi_driver = true
-  # enable_secrets_store_csi_driver = true
+  enable_metrics_server   = true
+  enable_external_secrets = true
 
   depends_on = [module.eks]
   tags       = local.common_tags
