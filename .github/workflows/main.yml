@@ -16,8 +16,8 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ vars.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Terraform Init
@@ -25,7 +25,7 @@ jobs:
 
       - name: Cleanup Kubernetes Webhooks (Pre-destroy)
         run: |
-          aws eks update-kubeconfig --name ${{ secrets.CLUSTER_NAME }} --region us-east-1
+          aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME }} --region us-east-1
           # Webhooks ko hatao jo Terraform ko "stuck" kar dete hain
           kubectl delete validatingwebhookconfigurations --all
           kubectl delete mutatingwebhookconfigurations --all
