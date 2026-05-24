@@ -30,7 +30,7 @@ spec:
           values: ["4"]
         - key: karpenter.k8s.aws/instance-size
           operator: In
-          values: ["c7i-flex.large", "m7i-flex.large"]
+          values: ["c7i-flex.large", "m7i-flex.large", "c7i-flex.xlarge", "m7i-flex.xlarge", "m7i.xlarge", "c7i.xlarge"]
       expireAfter: 720h
   limits:
     cpu: "100"
