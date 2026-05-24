@@ -38,18 +38,5 @@ jobs:
       - name: Terraform Init
         run: terraform init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=cloudaura/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
 
-      - name: Uninstall Helm Releases and Clean Nodes
-        run: |
-          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name cloudaura-eks-clusterv2 || true
-          helm uninstall karpenter -n karpenter || true
-          helm uninstall cert-manager -n cert-manager || true
-          helm uninstall ingress-nginx -n ingress-nginx || true
-          helm uninstall kube-prometheus-stack -n kube-prometheus-stack || true
-          helm uninstall argocd -n argocd || true
-          kubectl delete nodes --all || true
-          kubectl delete nodeclaim --all || true
-          kubectl delete nodepool --all || true
-          kubectl delete ec2nodeclass --all || true
-
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
