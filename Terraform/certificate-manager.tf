@@ -38,7 +38,7 @@ YAML
   depends_on = [helm_release.cert_manager]
 }
 
-# 3. DuckDNS Webhook (Direct Manifest - Active Image)
+# 3. DuckDNS Webhook (Direct Manifest - Updated with Private ECR Path)
 resource "kubectl_manifest" "cert_manager_webhook_duckdns" {
   yaml_body = <<YAML
 apiVersion: apps/v1
@@ -65,7 +65,7 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: webhook
-          image: lewebsimple/cert-manager-webhook-duckdns:latest
+          image: 351849325312.dkr.ecr.eu-north-1.amazonaws.com/cert-manager-webhook-duckdns:v1.2.3
           args:
             - --tls-cert-dir=/tls
             - --groupName=acme.webhook.duckdns.org
