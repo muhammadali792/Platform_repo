@@ -4,7 +4,8 @@
 resource "aws_iam_role" "addon_roles" {
   for_each = var.eks_addons_security_config
 
-  name = "${module.eks.cluster_name}-${each.key}-pod-identity"
+  # 🟢 FIX: substr use kiya hai taake naam kabhi bhi 64 chars se exceed na ho
+  name = substr("${module.eks.cluster_name}-${each.key}-role", 0, 64)
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -43,20 +44,7 @@ resource "aws_eks_pod_identity_association" "addon_associations" {
 # =============================================================================
 # 4. AWS SERVICE-LINKED ROLE FOR EC2 SPOT INSTANCES
 # =============================================================================
-# Required globally in the AWS account so Karpenter can provision Spot Instances.
 resource "aws_iam_service_linked_role" "spot" {
   aws_service_name = "spot.amazonaws.com"
   description      = "Service-linked role for EC2 Spot Instances managed by Karpenter"
-}
-
-# =============================================================================
-# 5. VARIABLES USED IN CONFIGURATION
-# =============================================================================
-variable "eks_addons_security_config" {
-  description = "Map of EKS addons configuration for dynamic Pod Identity IAM roles"
-  type = map(object({
-    namespace       = string
-    service_account = string
-    policy_arn      = string
-  }))
 }
