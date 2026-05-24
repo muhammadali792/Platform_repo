@@ -3,10 +3,8 @@ kind: EC2NodeClass
 metadata:
   name: default
 spec:
-  amiFamily: Ubuntu
   amiSelectorTerms:
-    - name: "ubuntu-eks/k8s_${cluster_version}/images/hvm-ssd-gp3/ubuntu-noble-24.04-*"
-      owners: ["099720109477"]
+    - alias: al2023@latest
   role: ${node_iam_role_name}
   subnetSelectorTerms:
     - tags:
