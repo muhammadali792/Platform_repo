@@ -8,15 +8,21 @@ module "eks_addons" {
   oidc_provider_arn = module.eks.oidc_provider_arn
 
   # =============================================================================
-  # AWS LOAD BALANCER CONTROLLER — [ENABLED]
+
+  # =============================================================================
+  # AWS LOAD BALANCER CONTROLLER
   # =============================================================================
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller = {
-    role_name = "${var.cluster_name}-aws-lbc"
+    enable_pod_identity = true
+    set = [{
+      name  = "vpcId"
+      value = module.vpc.vpc_id
+    }]
   }
 
   # =============================================================================
-  # NGINX INGRESS + NLB — [ACTIVE]
+  # NGINX INGRESS + NLB
   # =============================================================================
   enable_ingress_nginx = true
   ingress_nginx = {
@@ -24,38 +30,12 @@ module "eks_addons" {
       yamlencode({
         controller = {
           replicaCount = 2
-          topologySpreadConstraints = [
-            {
-              maxSkew           = 1
-              topologyKey       = "topology.kubernetes.io/zone"
-              whenUnsatisfiable = "DoNotSchedule"
-              labelSelector = {
-                matchLabels = {
-                  "app.kubernetes.io/name" = "ingress-nginx"
-                }
-              }
-            }
-          ]
-          resources = {
-            requests = { cpu = "100m", memory = "128Mi" }
-            limits   = { cpu = "200m", memory = "256Mi" }
-          }
           service = {
-            type                  = "LoadBalancer"
-            externalTrafficPolicy = "Local"
+            type = "LoadBalancer"
             annotations = {
-              "service.beta.kubernetes.io/aws-load-balancer-type"                                 = "nlb"
-              "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
-              "service.beta.kubernetes.io/aws-load-balancer-scheme"                                = "internet-facing"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-path"                     = "/healthz"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                     = "10254"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"                 = "HTTP"
-              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                       = "ip"
+              "service.beta.kubernetes.io/aws-load-balancer-type"            = "nlb"
+              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
             }
-          }
-          config = {
-            use-forwarded-headers      = "true"
-            compute-full-forwarded-for = "true"
           }
         }
       })
@@ -63,7 +43,7 @@ module "eks_addons" {
   }
 
   # =============================================================================
-  # ARGOCD — [ACTIVE]
+  # ARGOCD & CORE ADDONS
   # =============================================================================
   enable_argocd = true
   argocd = {
@@ -75,27 +55,13 @@ module "eks_addons" {
             enabled          = true
             ingressClassName = "nginx"
             hosts            = ["argocd.${var.domain_name}"]
-            annotations = {
-              "cert-manager.io/cluster-issuer"             = "letsencrypt-prod"
-              "nginx.ingress.kubernetes.io/ssl-redirect"       = "true"
-              "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
-              "nginx.ingress.kubernetes.io/backend-protocol"   = "HTTPS"
-            }
-            tls = [
-              {
-                secretName = "argocd-server-tls"
-                hosts      = ["argocd.${var.domain_name}"]
-              }
-            ]
+            annotations      = { "cert-manager.io/cluster-issuer" = "letsencrypt-prod" }
           }
         }
       })
     ]
   }
 
-  # =============================================================================
-  # CORE ADDONS
-  # =============================================================================
   enable_metrics_server   = true
   enable_external_secrets = true
 
