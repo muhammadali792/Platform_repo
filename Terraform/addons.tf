@@ -8,29 +8,20 @@ module "eks_addons" {
   oidc_provider_arn = module.eks.oidc_provider_arn
 
   # =============================================================================
-  # AWS LOAD BALANCER CONTROLLER — System Node
+  # AWS LOAD BALANCER CONTROLLER — [DISABLED]
   # =============================================================================
-  enable_aws_load_balancer_controller = true
-  aws_load_balancer_controller = {
-    values = [
-      yamlencode({
-        tolerations = [
-          { key = "CriticalAddonsOnly", operator = "Exists", effect = "NoSchedule" }
-        ]
-        nodeSelector = { role = "system" }
-      })
-    ]
-  }
+  # enable_aws_load_balancer_controller = true
 
   # =============================================================================
-  # NGINX INGRESS + NLB — Karpenter Node
+  # NGINX INGRESS + NLB — [ACTIVE]
   # =============================================================================
   enable_ingress_nginx = true
   ingress_nginx = {
     values = [
       yamlencode({
         controller = {
-          replicaCount = 3
+          # Karpenter nodes par burden kam karne ke liye replicas 3 se 2 kar di hain
+          replicaCount = 2
 
           topologySpreadConstraints = [
             {
@@ -54,13 +45,13 @@ module "eks_addons" {
             type                  = "LoadBalancer"
             externalTrafficPolicy = "Local"
             annotations = {
-              "service.beta.kubernetes.io/aws-load-balancer-type"                              = "nlb"
+              "service.beta.kubernetes.io/aws-load-balancer-type"                                  = "nlb"
               "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
-              "service.beta.kubernetes.io/aws-load-balancer-scheme"                            = "internet-facing"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-path"                 = "/healthz"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                 = "10254"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"             = "HTTP"
-              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                   = "ip"
+              "service.beta.kubernetes.io/aws-load-balancer-scheme"                                = "internet-facing"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-path"                     = "/healthz"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                     = "10254"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"                 = "HTTP"
+              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                       = "ip"
             }
           }
 
@@ -74,7 +65,7 @@ module "eks_addons" {
   }
 
   # =============================================================================
-  # ARGOCD — Secure Architecture (No Insecure Flags + SSL Redirect)
+  # ARGOCD — [ACTIVE]
   # =============================================================================
   enable_argocd = true
   argocd = {
@@ -82,18 +73,15 @@ module "eks_addons" {
     values = [
       yamlencode({
         server = {
-          # 🟢 `--insecure` hata diya hai taake internal TLS active ho jaye
           extraArgs = []
           ingress = {
             enabled          = true
             ingressClassName = "nginx"
             hosts            = ["argocd.${var.domain_name}"]
             annotations = {
-              # 🟢 SSL Redirection aur Cert-Manager integration annotations
-              "cert-manager.io/cluster-issuer"              = "letsencrypt-duckdns"
+              "cert-manager.io/cluster-issuer"               = "letsencrypt-duckdns"
               "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
               "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
-              # ArgoCD internal TLS use kar raha hai, isliye backend protocol HTTPS hona chahiye
               "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
             }
             tls = [
@@ -103,21 +91,22 @@ module "eks_addons" {
               }
             ]
           }
+          # Prometheus active nahi hai, isliye load aur errors se bachne ke liye serviceMonitor ko false kar diya hai
           metrics = {
-            enabled        = true
-            serviceMonitor = { enabled = true, namespace = "monitoring" }
+            enabled        = false
+            serviceMonitor = { enabled = false }
           }
         }
         controller = {
           metrics = {
-            enabled        = true
-            serviceMonitor = { enabled = true, namespace = "monitoring" }
+            enabled        = false
+            serviceMonitor = { enabled = false }
           }
         }
         repoServer = {
           metrics = {
-            enabled        = true
-            serviceMonitor = { enabled = true, namespace = "monitoring" }
+            enabled        = false
+            serviceMonitor = { enabled = false }
           }
         }
       })
@@ -125,110 +114,25 @@ module "eks_addons" {
   }
 
   # =============================================================================
-  # METRICS SERVER — System Node
+  # METRICS SERVER — [DISABLED]
   # =============================================================================
-  enable_metrics_server = true
-  metrics_server = {
-    values = [
-      yamlencode({
-        tolerations = [
-          { key = "CriticalAddonsOnly", operator = "Exists", effect = "NoSchedule" }
-        ]
-        nodeSelector = { role = "system" }
-      })
-    ]
-  }
+  # enable_metrics_server = true
 
   # =============================================================================
-  # EXTERNAL SECRETS — Karpenter Node
+  # EXTERNAL SECRETS — [DISABLED]
   # =============================================================================
-  enable_external_secrets = true
+  # enable_external_secrets = true
 
   # =============================================================================
-  # PROMETHEUS + GRAFANA — Secure Ingress Setup
+  # PROMETHEUS + GRAFANA — [DISABLED] (Asal Heavy Load Ye Tha)
   # =============================================================================
-  enable_kube_prometheus_stack = true
-  kube_prometheus_stack = {
-    values = [
-      yamlencode({
-        grafana = {
-          ingress = {
-            enabled          = true
-            ingressClassName = "nginx"
-            hosts            = ["grafana.${var.domain_name}"]
-            annotations = {
-              # 🟢 Automatic HTTP to HTTPS redirect & SSL cert matching
-              "cert-manager.io/cluster-issuer"              = "letsencrypt-duckdns"
-              "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
-              "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
-            }
-            tls = [
-              {
-                secretName = "grafana-tls-cert"
-                hosts      = ["grafana.${var.domain_name}"]
-              }
-            ]
-          }
-        }
-        prometheus = {
-          ingress = {
-            enabled          = true
-            ingressClassName = "nginx"
-            hosts            = ["prometheus.${var.domain_name}"]
-            annotations = {
-              # 🟢 Prometheus Dashboard protection & SSL redirection
-              "cert-manager.io/cluster-issuer"              = "letsencrypt-duckdns"
-              "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
-              "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
-            }
-            tls = [
-              {
-                secretName = "prometheus-tls-cert"
-                hosts      = ["prometheus.${var.domain_name}"]
-              }
-            ]
-          }
-        }
-      })
-    ]
-  }
+  # enable_kube_prometheus_stack = true
 
   # =============================================================================
-  # EFS CSI DRIVER — System Node
+  # STORAGE DRIVERS — [DISABLED]
   # =============================================================================
-  enable_aws_efs_csi_driver = true
-  aws_efs_csi_driver = {
-    values = [
-      yamlencode({
-        controller = {
-          tolerations = [
-            { key = "CriticalAddonsOnly", operator = "Exists", effect = "NoSchedule" }
-          ]
-          nodeSelector = { role = "system" }
-        }
-      })
-    ]
-  }
-
-  # =============================================================================
-  # SECRETS STORE CSI DRIVER — System Node
-  # =============================================================================
-  enable_secrets_store_csi_driver              = true
-  enable_secrets_store_csi_driver_provider_aws = true
-  secrets_store_csi_driver = {
-    values = [
-      yamlencode({
-        tolerations = [
-          { key = "CriticalAddonsOnly", operator = "Exists", effect = "NoSchedule" }
-        ]
-        nodeSelector = { role = "system" }
-      })
-    ]
-    set = [
-      { name = "syncSecret.enabled",   value = "true" },
-      { name = "enableSecretRotation", value = "true" }
-    ]
-  }
+  # enable_aws_efs_csi_driver = true
+  # enable_secrets_store_csi_driver = true
 
   depends_on = [module.eks]
   tags       = local.common_tags
