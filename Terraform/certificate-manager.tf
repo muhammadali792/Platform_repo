@@ -38,7 +38,7 @@ YAML
   depends_on = [helm_release.cert_manager]
 }
 
-# 3. DuckDNS Webhook (Direct Manifest - No Repository Needed)
+# 3. DuckDNS Webhook (Direct Manifest - Updated Image)
 resource "kubectl_manifest" "cert_manager_webhook_duckdns" {
   yaml_body = <<YAML
 apiVersion: apps/v1
@@ -65,13 +65,14 @@ spec:
           effect: "NoSchedule"
       containers:
         - name: webhook
-          image: ebrianne/cert-manager-webhook-duckdns:0.1.2
+          image: bjoernhaeuser/cert-manager-webhook-duckdns:latest
           args:
             - --tls-cert-dir=/tls
             - --groupName=acme.webhook.duckdns.org
           ports:
             - containerPort: 443
 YAML
+  wait = false
   depends_on = [kubectl_manifest.duckdns_secret]
 }
 
