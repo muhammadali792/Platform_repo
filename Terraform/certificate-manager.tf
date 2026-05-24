@@ -2,13 +2,13 @@ resource "helm_release" "cert_manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
   chart            = "cert-manager"
-  version          = "v1.14.4"
+  version          = "1.20.2" # 🟢 Artifact Hub ke mutabik naya stable version
   namespace        = "cert-manager"
   create_namespace = true
 
-  # 🟢 Global scheduling keys ensure ALL cert-manager sub-pods inherit nodeSelector and tolerations
   values = [<<-EOT
-    installCRDs: true
+    crds:
+      enabled: true # 🟢 Naye cert-manager versions mein installCRDs ki jagah crds.enabled use hota hai
     global:
       nodeSelector:
         role: system
@@ -25,15 +25,17 @@ resource "helm_release" "cert_manager" {
 
 resource "helm_release" "cert_manager_duckdns" {
   name       = "cert-manager-webhook-duckdns"
-  repository = "https://ndom91.github.io/cert-manager-webhook-duckdns"
+  repository = "https://ebrianne.github.io/helm-charts" # 🟢 Official active working repo URL
   chart      = "cert-manager-webhook-duckdns"
-  version    = "v0.3.0"
+  version    = "0.1.2" # 🟢 Is repo ka working stable version
   namespace  = "cert-manager"
 
   values = [<<-EOT
     certManager:
       namespace: cert-manager
-      groupName: acme.webhook.duckdns.org
+    clusterIssuer:
+      production:
+        enabled: false # Hum ne niche custom ClusterIssuer khud banaya hua hai isliye ise false rakha hai
     nodeSelector:
       role: system
     tolerations:
@@ -86,4 +88,4 @@ spec:
 YAML
 
   depends_on = [kubectl_manifest.duckdns_secret]
-} 
+}
