@@ -87,7 +87,7 @@ module "eks_addons" {
             tls = [
               {
                 secretName = "argocd-server-tls"
-                hosts      = ["argocd.$${var.domain_name}"]
+                hosts      = ["argocd.${var.domain_name}"]
               }
             ]
           }
