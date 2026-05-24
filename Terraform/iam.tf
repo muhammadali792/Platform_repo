@@ -1,3 +1,6 @@
+# =============================================================================
+# 1. DYNAMIC IAM ROLES FOR EKS ADDONS (Using Pod Identity)
+# =============================================================================
 resource "aws_iam_role" "addon_roles" {
   for_each = var.eks_addons_security_config
 
@@ -15,12 +18,18 @@ resource "aws_iam_role" "addon_roles" {
   tags = local.common_tags
 }
 
+# =============================================================================
+# 2. POLICY ATTACHMENTS FOR ADDON ROLES
+# =============================================================================
 resource "aws_iam_role_policy_attachment" "addon_roles" {
   for_each   = var.eks_addons_security_config
   role       = aws_iam_role.addon_roles[each.key].name
   policy_arn = each.value.policy_arn
 }
 
+# =============================================================================
+# 3. EKS POD IDENTITY ASSOCIATIONS
+# =============================================================================
 resource "aws_eks_pod_identity_association" "addon_associations" {
   for_each        = var.eks_addons_security_config
   cluster_name    = module.eks.cluster_name
@@ -31,6 +40,18 @@ resource "aws_eks_pod_identity_association" "addon_associations" {
   depends_on = [module.eks]
 }
 
+# =============================================================================
+# 4. AWS SERVICE-LINKED ROLE FOR EC2 SPOT INSTANCES
+# =============================================================================
+# Required globally in the AWS account so Karpenter can provision Spot Instances.
+resource "aws_iam_service_linked_role" "spot" {
+  aws_service_name = "spot.amazonaws.com"
+  description      = "Service-linked role for EC2 Spot Instances managed by Karpenter"
+}
+
+# =============================================================================
+# 5. VARIABLES USED IN CONFIGURATION
+# =============================================================================
 variable "eks_addons_security_config" {
   description = "Map of EKS addons configuration for dynamic Pod Identity IAM roles"
   type = map(object({
