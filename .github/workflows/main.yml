@@ -6,6 +6,13 @@ on:
 jobs:
   destroy:
     runs-on: ubuntu-latest
+    # Yahan hum 'vars' ko 'env' mein map kar rahe hain
+    env:
+      AWS_ACCESS_KEY_ID: ${{ vars.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ vars.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -13,10 +20,9 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          # Yahan 'vars' use ho raha hai
-          aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ vars.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
+          # Ab hum explicit input ki jagah default env variables use karenge
+          aws-region: ${{ env.AWS_REGION }}
+          # Yeh action automatically env mein mojud ACCESS_KEY_ID/SECRET_ACCESS_KEY utha lega
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -26,7 +32,7 @@ jobs:
 
       - name: Pre-destroy Cleanup
         run: |
-          aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME }} --region ${{ vars.AWS_REGION }}
+          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
           kubectl delete validatingwebhookconfigurations --all
           kubectl delete mutatingwebhookconfigurations --all
 
