@@ -10,10 +10,10 @@ resource "helm_release" "cert_manager" {
   values = [<<-EOT
     crds:
       enabled: true
-    global:
-      nodeSelector:
-        role: system
-      tolerations:
+    # Root level nodeSelector aur tolerations zyada reliable hote hain
+    nodeSelector:
+      role: system
+    tolerations:
       - key: "CriticalAddonsOnly"
         operator: "Equal"
         value: "true"
@@ -39,10 +39,10 @@ resource "helm_release" "cert_manager_duckdns" {
     nodeSelector:
       role: system
     tolerations:
-    - key: "CriticalAddonsOnly"
-      operator: "Equal"
-      value: "true"
-      effect: "NoSchedule"
+      - key: "CriticalAddonsOnly"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
   EOT
   ]
   depends_on = [helm_release.cert_manager]
