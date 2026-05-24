@@ -6,16 +6,17 @@ resource "helm_release" "cert_manager" {
   namespace        = "cert-manager"
   create_namespace = true
 
-  # 🟢 Native YAML block for super clean scheduling config
+  # 🟢 Global scheduling keys ensure ALL cert-manager sub-pods inherit nodeSelector and tolerations
   values = [<<-EOT
     installCRDs: true
-    nodeSelector:
-      role: system
-    tolerations:
-    - key: "role"
-      operator: "Equal"
-      value: "system"
-      effect: "NoSchedule"
+    global:
+      nodeSelector:
+        role: system
+      tolerations:
+      - key: "role"
+        operator: "Equal"
+        value: "system"
+        effect: "NoSchedule"
   EOT
   ]
 
@@ -32,7 +33,7 @@ resource "helm_release" "cert_manager_duckdns" {
   values = [<<-EOT
     certManager:
       namespace: cert-manager
-    groupName: acme.webhook.duckdns.org
+      groupName: acme.webhook.duckdns.org
     nodeSelector:
       role: system
     tolerations:
