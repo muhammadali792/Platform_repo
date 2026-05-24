@@ -18,18 +18,27 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
+  # 🟢 Updated Syntax for Addons (Fixing Deprecation Warnings)
   cluster_addons = {
     coredns = {
-      most_recent = true
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
     kube-proxy = {
-      most_recent = true
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
     vpc-cni = {
-      most_recent = true
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
     eks-pod-identity-agent = {
-      most_recent = true
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
   }
 
@@ -58,9 +67,9 @@ module "eks" {
   }
 
   tags = {
-    Environment              = var.environment
-    ManagedBy                = "Terraform"
-    "karpenter.sh/discovery" = var.cluster_name
+    Environment                = var.environment
+    ManagedBy                  = "Terraform"
+    "karpenter.sh/discovery"   = var.cluster_name
   }
 }
 
@@ -125,8 +134,8 @@ module "karpenter_iam" {
   namespace                       = "karpenter"
   service_account                 = "karpenter"
 
-  create_node_iam_role = true
-  create_access_entry  = true
+  create_node_iam_role    = true
+  create_access_entry     = true
   create_instance_profile = true
 
   node_iam_role_additional_policies = {
