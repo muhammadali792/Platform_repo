@@ -1,40 +1,55 @@
-name: Destroy Infrastructure
+name: "EKS Infrastructure DESTROY"
 
 on:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    working-directory: ./Terraform
+
 jobs:
-  destroy:
+  terraform_destroy:
+    name: "Terraform Destroy"
     runs-on: ubuntu-latest
-    # Yahan hum 'vars' ko 'env' mein map kar rahe hain
-    env:
-      AWS_ACCESS_KEY_ID: ${{ vars.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ vars.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          # Ab hum explicit input ki jagah default env variables use karenge
-          aws-region: ${{ env.AWS_REGION }}
-          # Yeh action automatically env mein mojud ACCESS_KEY_ID/SECRET_ACCESS_KEY utha lega
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Force Clean S3 Native Lockfile
+        run: aws s3 rm s3://${{ vars.TF_STATE_BUCKET }}/cloudaura/terraform.tfstate.lockfile || true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.15.4"
+          terraform_wrapper: false
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=cloudaura/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
 
-      - name: Pre-destroy Cleanup
+      - name: Uninstall Helm Releases and Clean Nodes
         run: |
-          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
-          kubectl delete validatingwebhookconfigurations --all
-          kubectl delete mutatingwebhookconfigurations --all
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name cloudaura-eks-clusterv2 || true
+          helm uninstall karpenter -n karpenter || true
+          helm uninstall cert-manager -n cert-manager || true
+          helm uninstall ingress-nginx -n ingress-nginx || true
+          helm uninstall kube-prometheus-stack -n kube-prometheus-stack || true
+          helm uninstall argocd -n argocd || true
+          kubectl delete nodes --all || true
+          kubectl delete nodeclaim --all || true
+          kubectl delete nodepool --all || true
+          kubectl delete ec2nodeclass --all || true
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
