@@ -10,7 +10,7 @@ module "eks_addons" {
   # =============================================================================
   # AWS LOAD BALANCER CONTROLLER — [DISABLED]
   # =============================================================================
-  # enable_aws_load_balancer_controller = true
+  enable_aws_load_balancer_controller = true
 
   # =============================================================================
   # NGINX INGRESS + NLB — [ACTIVE]
