@@ -24,13 +24,16 @@ spec:
           values: ["spot"]
         - key: karpenter.k8s.aws/instance-category
           operator: In
-          values: ["m", "c", "r"]
+          # Strictly m aur c families jo aap allow karna chahte hain
+          values: ["m", "c"]
         - key: karpenter.k8s.aws/instance-generation
-          operator: Gt
-          values: ["4"]
+          operator: In
+          # Strictly 7th generation (m7i, c7i, c7i-flex)
+          values: ["7"]
         - key: karpenter.k8s.aws/instance-size
-          operator: NotIn
-          values: [nano, micro, small]
+          operator: In
+          # Pehle 'large' use hoga, zaroorat parne par 'xlarge' banega taake timeout na ho
+          values: ["large", "xlarge"]
       expireAfter: 720h
   limits:
     cpu: "100"
