@@ -1,4 +1,3 @@
-/*
 resource "helm_release" "cert_manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
@@ -88,4 +87,3 @@ YAML
 
   depends_on = [kubectl_manifest.duckdns_secret]
 } 
-*/
