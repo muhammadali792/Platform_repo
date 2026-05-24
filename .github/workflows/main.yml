@@ -38,7 +38,7 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
-        run: terraform init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=cloudaura/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
+        run: terraform init -upgrade -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=cloudaura/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
 
       - name: Terraform Validate
         run: terraform validate
@@ -60,6 +60,19 @@ jobs:
 
       - name: Phase 6 — Karpenter Helm
         run: terraform apply -target=helm_release.karpenter -target=kubectl_manifest.node_class -target=kubectl_manifest.node_pool_general -auto-approve
+
+      - name: Wait for Karpenter Nodes
+        run: |
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name cloudaura-eks-clusterv2
+          for i in $(seq 1 20); do
+            NODE_COUNT=$(kubectl get nodes --no-headers | grep -v "CriticalAddonsOnly" | wc -l)
+            if [ "$NODE_COUNT" -gt "2" ]; then
+              echo "Karpenter nodes ready: $NODE_COUNT"
+              break
+            fi
+            echo "Attempt $i — waiting 30s..."
+            sleep 30
+          done
 
       - name: Phase 7 — Final Apply
         run: terraform apply -auto-approve
