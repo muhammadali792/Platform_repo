@@ -40,8 +40,8 @@ module "eks" {
       capacity_type   = "ON_DEMAND"
 
       min_size     = 1
-      max_size     = 3
-      desired_size = 4
+      max_size     = 4
+      desired_size = 3
 
       additional_security_group_ids = [aws_security_group.additional_node_sg.id]
 
