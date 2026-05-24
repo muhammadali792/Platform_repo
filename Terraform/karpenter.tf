@@ -21,7 +21,7 @@ resource "kubectl_manifest" "node_class" {
     node_iam_role_name = module.karpenter_iam.node_iam_role_name
     environment        = var.environment
     cluster_version    = var.cluster_version
-    cluster_dns        = cidrhost(module.eks.cluster_service_cidr, 10)
+    cluster_dns = cidrhost(module.eks.cluster_network_config[0].service_ipv4_cidr, 10)
   })
   depends_on = [helm_release.karpenter]
 }
