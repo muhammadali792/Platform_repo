@@ -2,32 +2,32 @@ resource "helm_release" "cert_manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
   chart            = "cert-manager"
-  version          = "1.20.2" # 🟢 Artifact Hub ke mutabik naya stable version
+  version          = "1.20.2"
   namespace        = "cert-manager"
   create_namespace = true
-  timeout = 600
+  timeout          = 600
+
   values = [<<-EOT
     crds:
-      enabled: true # 🟢 Naye cert-manager versions mein installCRDs ki jagah crds.enabled use hota hai
+      enabled: true
     global:
       nodeSelector:
         role: system
       tolerations:
-      - key: "role"
+      - key: "CriticalAddonsOnly"
         operator: "Equal"
-        value: "system"
+        value: "true"
         effect: "NoSchedule"
   EOT
   ]
-
   depends_on = [module.eks]
 }
 
 resource "helm_release" "cert_manager_duckdns" {
   name       = "cert-manager-webhook-duckdns"
-  repository = "https://ebrianne.github.io/helm-charts" # 🟢 Official active working repo URL
+  repository = "https://ebrianne.github.io/helm-charts"
   chart      = "cert-manager-webhook-duckdns"
-  version    = "0.1.2" # 🟢 Is repo ka working stable version
+  version    = "0.1.2"
   namespace  = "cert-manager"
 
   values = [<<-EOT
@@ -35,17 +35,16 @@ resource "helm_release" "cert_manager_duckdns" {
       namespace: cert-manager
     clusterIssuer:
       production:
-        enabled: false # Hum ne niche custom ClusterIssuer khud banaya hua hai isliye ise false rakha hai
+        enabled: false
     nodeSelector:
       role: system
     tolerations:
-    - key: "role"
+    - key: "CriticalAddonsOnly"
       operator: "Equal"
-      value: "system"
+      value: "true"
       effect: "NoSchedule"
   EOT
   ]
-
   depends_on = [helm_release.cert_manager]
 }
 
@@ -60,7 +59,6 @@ type: Opaque
 stringData:
   token: "896a3c54-360c-4a20-8d25-e421eeccf181"
 YAML
-
   depends_on = [helm_release.cert_manager_duckdns]
 }
 
@@ -86,6 +84,5 @@ spec:
               name: duckdns-token-secret
               key: token
 YAML
-
   depends_on = [kubectl_manifest.duckdns_secret]
 }
