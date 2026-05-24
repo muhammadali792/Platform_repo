@@ -45,13 +45,13 @@ module "eks_addons" {
             type                  = "LoadBalancer"
             externalTrafficPolicy = "Local"
             annotations = {
-              "service.beta.kubernetes.io/aws-load-balancer-type"                              = "nlb"
+              "service.beta.kubernetes.io/aws-load-balancer-type"                               = "nlb"
               "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
               "service.beta.kubernetes.io/aws-load-balancer-scheme"                                = "internet-facing"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-path"                     = "/healthz"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                     = "10254"
-              "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"                 = "HTTP"
-              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                       = "ip"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-path"                      = "/healthz"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-port"                      = "10254"
+              "service.beta.kubernetes.io/aws-load-balancer-health-check-protocol"                  = "HTTP"
+              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                        = "ip"
             }
           }
 
@@ -65,7 +65,7 @@ module "eks_addons" {
   }
 
   # =============================================================================
-  # ARGOCD — [TEMPORARILY DISABLED VIA COMMENT]
+  # ARGOCD — [ACTIVE WITH FIXED INGRESS LIST FORMAT]
   # =============================================================================
   enable_argocd = true
   argocd = {
@@ -77,10 +77,11 @@ module "eks_addons" {
           ingress = {
             enabled          = true
             ingressClassName = "nginx"
-            hosts            = "argocd.${var.domain_name}"
+            # 🟢 FIX: Ab yeh yamlencode ho kar sahi YAML list array [- "argocd.yourdomain"] banega
+            hosts            = ["argocd.${var.domain_name}"] 
             annotations = {
               "cert-manager.io/cluster-issuer"               = "letsencrypt-duckdns"
-              "nginx.ingress.kubernetes.io/ssl-redirect"    = "true"
+              "nginx.ingress.kubernetes.io/ssl-redirect"     = "true"
               "nginx.ingress.kubernetes.io/force-ssl-redirect" = "true"
               "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
             }
