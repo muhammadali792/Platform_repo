@@ -1,3 +1,4 @@
+# 1. Cert-Manager (Helm se install hoga)
 resource "helm_release" "cert_manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
@@ -22,32 +23,7 @@ resource "helm_release" "cert_manager" {
   depends_on = [module.eks]
 }
 
-resource "helm_release" "cert_manager_webhook_duckdns" {
-  name       = "cert-manager-webhook-duckdns"
-  # 🟢 Fairwinds repository (Valid URL)
-  repository = "https://fairwindsops.github.io/charts"
-  chart      = "cert-manager-webhook-duckdns"
-  version    = "1.0.0" 
-  namespace  = "cert-manager"
-
-  values = [<<-EOT
-    certManager:
-      namespace: cert-manager
-    clusterIssuer:
-      production:
-        enabled: false
-    nodeSelector:
-      role: system
-    tolerations:
-      - key: "CriticalAddonsOnly"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-  EOT
-  ]
-  depends_on = [helm_release.cert_manager]
-}
-
+# 2. DuckDNS Secret
 resource "kubectl_manifest" "duckdns_secret" {
   yaml_body = <<YAML
 apiVersion: v1
@@ -59,9 +35,47 @@ type: Opaque
 stringData:
   token: "896a3c54-360c-4a20-8d25-e421eeccf181"
 YAML
-  depends_on = [helm_release.cert_manager_webhook_duckdns]
+  depends_on = [helm_release.cert_manager]
 }
 
+# 3. DuckDNS Webhook (Direct Manifest - No Repository Needed)
+resource "kubectl_manifest" "cert_manager_webhook_duckdns" {
+  yaml_body = <<YAML
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cert-manager-webhook-duckdns
+  namespace: cert-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cert-manager-webhook-duckdns
+  template:
+    metadata:
+      labels:
+        app: cert-manager-webhook-duckdns
+    spec:
+      nodeSelector:
+        role: system
+      tolerations:
+        - key: "CriticalAddonsOnly"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+      containers:
+        - name: webhook
+          image: ebrianne/cert-manager-webhook-duckdns:0.1.2
+          args:
+            - --tls-cert-dir=/tls
+            - --groupName=acme.webhook.duckdns.org
+          ports:
+            - containerPort: 443
+YAML
+  depends_on = [kubectl_manifest.duckdns_secret]
+}
+
+# 4. ClusterIssuer
 resource "kubectl_manifest" "letsencrypt_issuer" {
   yaml_body = <<YAML
 apiVersion: cert-manager.io/v1
@@ -84,5 +98,5 @@ spec:
               name: duckdns-token-secret
               key: token
 YAML
-  depends_on = [kubectl_manifest.duckdns_secret]
+  depends_on = [kubectl_manifest.cert_manager_webhook_duckdns]
 }
