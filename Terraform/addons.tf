@@ -17,17 +17,26 @@ module "eks_addons" {
   # =============================================================================
   # NGINX INGRESS + NLB
   # =============================================================================
+  /*
   enable_ingress_nginx = true
   ingress_nginx = {
     values = [
       yamlencode({
         controller = {
           replicaCount = 2
+          config = {
+          "force-ssl-redirect" = "true"  
+          "ssl-redirect"       = "true"
+          }
           service = {
             type = "LoadBalancer"
+            #externalTrafficPolicy = "Local"
             annotations = {
               "service.beta.kubernetes.io/aws-load-balancer-type"            = "nlb"
               "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
+              "service.beta.kubernetes.io/aws-load-balancer-scheme"                      = "internet-facing"  # public access
+              "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"  # sare zones me traffic
+              "service.beta.kubernetes.io/aws-load-balancer-backend-protocol"            = "tcp"
             }
           }
         }
@@ -54,7 +63,7 @@ module "eks_addons" {
       })
     ]
   }
-
+  */
   enable_metrics_server   = true
   enable_external_secrets = true
 
