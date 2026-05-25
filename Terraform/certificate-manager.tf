@@ -1,9 +1,8 @@
-# 1. Cert-Manager (Helm se install hoga)
 resource "helm_release" "cert_manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
   chart            = "cert-manager"
-  version          = "1.20.2"
+  version          = "v1.17.2"
   namespace        = "cert-manager"
   create_namespace = true
   timeout          = 600
@@ -18,34 +17,47 @@ resource "helm_release" "cert_manager" {
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
+    cainjector:
+      nodeSelector:
+        role: system
+      tolerations:
+        - key: "CriticalAddonsOnly"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    webhook:
+      nodeSelector:
+        role: system
+      tolerations:
+        - key: "CriticalAddonsOnly"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
   EOT
   ]
-  depends_on = [module.eks]
+
+  depends_on = [module.eks, module.eks_addons]
 }
 /*
-# 2. ClusterIssuer
 resource "kubectl_manifest" "letsencrypt_issuer" {
   yaml_body = <<YAML
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-duckdns
+  name: letsencrypt-prod
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: muhammadali792@gmail.com
+    email: ${var.email}
     privateKeySecretRef:
-      name: letsencrypt-account-key
+      name: letsencrypt-prod
     solvers:
     - dns01:
-        webhook:
-          groupName: acme.webhook.duckdns.org
-          solverName: duckdns
-          config:
-            secretRef:
-              name: duckdns-token-secret
-              key: token
+        route53:
+          region: ${var.aws_region}
+          hostedZoneID: ${aws_route53_zone.main.zone_id}
 YAML
-  depends_on = [kubectl_manifest.cert_manager_webhook_duckdns]
+
+  depends_on = [helm_release.cert_manager]
 }
 */
