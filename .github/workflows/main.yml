@@ -1,21 +1,18 @@
-name: "EKS Infrastructure DESTROY"
-
+name: "EKS Infrastructure APPLY"
 on:
-  workflow_dispatch:
-
+  push:
+    branches:
+      - main
 permissions:
   id-token: write
   contents: read
-
 defaults:
   run:
     working-directory: ./Terraform
-
 jobs:
-  terraform_destroy:
-    name: "Terraform Destroy"
+  terraform_apply:
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -26,9 +23,6 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Force Clean S3 Native Lockfile
-        run: aws s3 rm s3://${{ vars.TF_STATE_BUCKET }}/cloudaura/terraform.tfstate.lockfile || true
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -38,5 +32,8 @@ jobs:
       - name: Terraform Init
         run: terraform init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=cloudaura/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+      - name: Terraform Plan
+        run: terraform plan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
