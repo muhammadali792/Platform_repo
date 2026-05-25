@@ -17,18 +17,19 @@ module "eks_addons" {
         value    = "true"
         effect   = "NoSchedule"
       }]
-      nodeSelector = {
-        role = "system"
-      }
+      nodeSelector = { role = "system" }
     })]
   }
 
   # NGINX INGRESS
   enable_ingress_nginx = true
-  timeout         = 600
-  atomic          = true
-  cleanup_on_fail = true
   ingress_nginx = {
+    # Timeout, Atomic, aur Cleanup yahan 'helm_config' ke andar jayenge
+    helm_config = {
+      timeout         = 600
+      atomic          = true
+      cleanup_on_fail = true
+    }
     values = [yamlencode({
       controller = {
         replicaCount = 2
@@ -46,15 +47,12 @@ module "eks_addons" {
         service = {
           type = "LoadBalancer"
           annotations = {
-            "service.beta.kubernetes.io/aws-load-balancer-type"                              = "nlb"
-            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                   = "ip"
-            "service.beta.kubernetes.io/aws-load-balancer-scheme"                            = "internet-facing"
-            "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
-            "service.beta.kubernetes.io/aws-load-balancer-backend-protocol"                  = "tcp"
+            "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
           }
         }
       }
-      # Admission Webhooks ke liye teeno jagah toleration add kardi hai
       admissionWebhooks = {
         enabled = true
         patch = {
@@ -72,22 +70,7 @@ module "eks_addons" {
       }
     })]
   }
-  /*
-  # ARGOCD
-  enable_argocd = true
-  argocd = {
-    namespace = "argocd"
-    values = [yamlencode({
-      server = {
-        ingress = {
-          enabled          = true
-          ingressClassName = "nginx"
-          hosts            = ["argocd.${var.domain_name}"]
-        }
-      }
-    })]
-  }
-  */
+
   # CORE ADDONS
   enable_metrics_server   = true
   enable_external_secrets = true
