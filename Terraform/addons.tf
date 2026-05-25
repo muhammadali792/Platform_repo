@@ -54,8 +54,8 @@ module "eks_addons" {
         }
       }
       admissionWebhooks = {
-        enabled = true
         patch = {
+          enabled      = true
           tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
           nodeSelector = { role = "system" }
         }
