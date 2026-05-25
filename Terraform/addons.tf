@@ -53,6 +53,19 @@ module "eks_addons" {
           }
         }
       }
+      admissionWebhooks = {
+        patch = {
+          tolerations = [{
+            key      = "CriticalAddonsOnly"
+            operator = "Equal"
+            value    = "true"
+            effect   = "NoSchedule"
+          }]
+          nodeSelector = {
+            role = "system"
+          }
+        }
+      }
     })]
   }
   /*
