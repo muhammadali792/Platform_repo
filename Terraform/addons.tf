@@ -13,6 +13,10 @@ module "eks_addons" {
     values = [yamlencode({
       tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
       nodeSelector = { role = "system" }
+      webhook = {
+        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
+      }
     })]
   }
 
@@ -24,22 +28,21 @@ module "eks_addons" {
         replicaCount = 2
         tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
         nodeSelector = { role = "system" }
+        config = {
+          "force-ssl-redirect" = "false"
+          "ssl-redirect"       = "false"
+        }
         service = {
           type = "LoadBalancer"
           annotations = {
             "service.beta.kubernetes.io/aws-load-balancer-type"                    = "external"
-
             "service.beta.kubernetes.io/aws-load-balancer-target-group-attributes" = "deregistration_delay.timeout_seconds=30"
-
             "service.beta.kubernetes.io/aws-load-balancer-scheme"                  = "internet-facing"
-
             "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol"    = "HTTP"
-
             "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"        = "80"
-
             "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"        = "/healthz"
-
             "service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval"    = "10"
+          }
         }
       }
     })]
@@ -49,18 +52,30 @@ module "eks_addons" {
   enable_argocd = true
   argocd = {
     values = [yamlencode({
-      server = { service = { type = "ClusterIP" } }
+      server = {
+        service = { type = "ClusterIP" }
+      }
     })]
   }
 
-  # 4. PROMETHEUS STACK
+  # 4. KUBE PROMETHEUS STACK
   enable_kube_prometheus_stack = true
   kube_prometheus_stack = {
     values = [yamlencode({
-      grafana = { adminPassword = "admin" }
+      prometheus = {
+        prometheusSpec = { retention = "5d" }
+      }
+      grafana = {
+        adminPassword = "admin"
+        service = { type = "ClusterIP" }
+      }
     })]
   }
 
+  # 5. CORE ADDONS
   enable_metrics_server   = true
   enable_external_secrets = true
+
+  depends_on = [module.eks]
+  tags       = local.common_tags
 }
