@@ -48,12 +48,32 @@ module "eks_addons" {
     })]
   }
 
-  # 3. ARGO CD
-  enable_argocd = true
+ enable_argocd = true
   argocd = {
     values = [yamlencode({
+      # ArgoCD Server configuration
       server = {
         service = { type = "ClusterIP" }
+        tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
+      }
+      # ArgoCD Image Updater
+      image-updater = {
+        enabled = true
+        tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
+      }
+
+      # Argo Rollouts
+      controller = {
+        # This belongs to the Rollouts chart
+      }
+      
+      # Argo Notifications
+      notifications = {
+        enabled = true
+        tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
       }
     })]
   }
