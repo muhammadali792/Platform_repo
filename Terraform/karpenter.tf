@@ -13,7 +13,7 @@ resource "helm_release" "karpenter" {
       iam_role_arn     = module.karpenter_iam.iam_role_arn
     })
   ]
-  depends_on = [module.eks, module.karpenter_iam, module.eks_addons] 
+  depends_on = [module.eks] 
 }
 
 resource "kubectl_manifest" "node_class" {
