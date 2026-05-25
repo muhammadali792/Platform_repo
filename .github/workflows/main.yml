@@ -1,41 +1,51 @@
-name: 'Destroy Infrastructure'
+name: "EKS Infrastructure Destroy"
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch: # Sirf manual trigger par chalega
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  destroy:
-    name: 'Destroy Infrastructure'
+  terraform_destroy:
+    name: "Terraform Destroy"
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write    # OIDC ke liye bahut zaroori hai
-      contents: read     # Code checkout ke liye
-    
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: ${{ env.IAM_ROLE_ARN }}
-        aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
 
-    - name: Terraform Init
-      run: |
-        terraform init \
-          -backend-config="bucket=${{ env.TF_STATE_BUCKET }}" \
-          -backend-config="key=${{ env.TF_STATE_KEY }}" \
-          -backend-config="region=${{ env.AWS_REGION }}"
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "latest"
 
-    - name: Pre-destroy Cleanup (CRDs)
-      run: |
-        # Cluster access setup (Kubeconfig generate karein)
-        aws eks update-kubeconfig --name <AAPKA-CLUSTER-NAAM> --region ${{ env.AWS_REGION }}
-        # CRDs ko delete karein taake terraform resources saaf delete ho sakein
-        kubectl delete crd --all --ignore-not-found=true
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=cloudaura/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="use_lockfile=true"
 
-    - name: Terraform Destroy
-      run: terraform destroy -auto-approve
+      # 1. Pehle Helm releases aur EKS workloads delete karein
+      - name: Terraform Destroy (Workloads)
+        run: |
+          terraform destroy \
+            -target=helm_release.argo_cd \
+            -target=helm_release.argo_rollouts \
+            -target=helm_release.kube_prometheus_stack \
+            -auto-approve
+
+      # 2. Phir baqi poora infrastructure destroy karein
+      - name: Terraform Destroy (Full)
+        run: |
+          terraform destroy \
+            -auto-approve
