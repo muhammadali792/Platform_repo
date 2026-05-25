@@ -11,16 +11,12 @@ module "eks_addons" {
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller = {
     values = [yamlencode({
-      tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+      tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
       nodeSelector = { role = "system" }
-      webhook = {
-        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-        nodeSelector = { role = "system" }
-      }
     })]
   }
 
-  # 2. NGINX INGRESS
+  # 2. NGINX INGRESS (With AWS Annotations)
   enable_ingress_nginx = true
   ingress_nginx = {
     values = [yamlencode({
@@ -28,51 +24,39 @@ module "eks_addons" {
         replicaCount = 2
         tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
         nodeSelector = { role = "system" }
-        config = {
-          "force-ssl-redirect" = "false"
-          "ssl-redirect"       = "false"
-        }
         service = {
           type = "LoadBalancer"
           annotations = {
-            "service.beta.kubernetes.io/aws-load-balancer-type"                    = "external"
-            "service.beta.kubernetes.io/aws-load-balancer-target-group-attributes" = "deregistration_delay.timeout_seconds=30"
-            "service.beta.kubernetes.io/aws-load-balancer-scheme"                  = "internet-facing"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol"    = "HTTP"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"        = "80"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"        = "/healthz"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval"    = "10"
+            "service.beta.kubernetes.io/aws-load-balancer-type"                  = "external"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"       = "ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"                = "internet-facing"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol"  = "HTTP"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"      = "80"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"      = "/healthz"
           }
         }
       }
     })]
   }
 
- enable_argocd = true
+  # 3. ARGO CD & ECOSYSTEM
+  enable_argocd = true
   argocd = {
     values = [yamlencode({
-      # ArgoCD Server configuration
-      server = {
-        service = { type = "ClusterIP" }
-        tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-        nodeSelector = { role = "system" }
-      }
-      # ArgoCD Image Updater
-      image-updater = {
-        enabled = true
-        tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-        nodeSelector = { role = "system" }
-      }
+      server        = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
+      controller    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
+      repoServer    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
+      image-updater = { enabled = true, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
+      notifications = { enabled = true, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
+    })]
+  }
 
-      # Argo Rollouts
+  # 3.1 ARGO ROLLOUTS
+  enable_argocd_rollouts = true
+  argocd_rollouts = {
+    values = [yamlencode({
       controller = {
-        # This belongs to the Rollouts chart
-      }
-      
-      # Argo Notifications
-      notifications = {
-        enabled = true
-        tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
         nodeSelector = { role = "system" }
       }
     })]
@@ -82,17 +66,11 @@ module "eks_addons" {
   enable_kube_prometheus_stack = true
   kube_prometheus_stack = {
     values = [yamlencode({
-      prometheus = {
-        prometheusSpec = { retention = "5d" }
-      }
-      grafana = {
-        adminPassword = "admin"
-        service = { type = "ClusterIP" }
-      }
+      prometheus = { prometheusSpec = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } } }
+      grafana    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
     })]
   }
 
-  # 5. CORE ADDONS
   enable_metrics_server   = true
   enable_external_secrets = true
 
