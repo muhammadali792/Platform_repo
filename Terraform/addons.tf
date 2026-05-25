@@ -25,6 +25,9 @@ module "eks_addons" {
 
   # NGINX INGRESS
   enable_ingress_nginx = true
+  timeout         = 600
+  atomic          = true
+  cleanup_on_fail = true
   ingress_nginx = {
     values = [yamlencode({
       controller = {
