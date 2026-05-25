@@ -1,80 +1,30 @@
-name: "EKS Infrastructure APPLY"
+name: 'Destroy Infrastructure'
 
 on:
-  push:
-    branches:
-      - main
-
-permissions:
-  id-token: write
-  contents: read
-
-defaults:
-  run:
-    working-directory: ./Terraform
+  workflow_dispatch: # Sirf manual trigger par chalega
 
 jobs:
-  terraform_apply:
-    name: "Terraform Apply"
+  destroy:
+    name: 'Destroy'
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    # 1. Checkout code
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ vars.AWS_REGION }}
+    # 2. AWS Credentials Setup
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-north-1
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.15.4"
-          terraform_wrapper: false
+    # 3. Terraform Init
+    - name: Terraform Init
+      run: terraform init
 
-      - name: Setup Kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: 'latest'
-
-      - name: Terraform Init
-        run: terraform init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=cloudaura/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}"
-
-      - name: Terraform Plan
-        run: terraform plan
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-
-      - name: Update Kubeconfig
-        run: aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME }} --region ${{ vars.AWS_REGION }}
-
-      - name: Force Refresh Entire Infrastructure
-        run: |
-          echo "Scanning entire cluster for resources to refresh..."
-          
-          # Cluster ki tamam namespaces ki list lein
-          namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
-          
-          for ns in $namespaces; do
-            echo "--- Processing Namespace: $ns ---"
-            
-            # 1. Restart all Deployments
-            kubectl rollout restart deployments -n "$ns" --ignore-not-found
-            
-            # 2. Restart all StatefulSets (ArgoCD, Prometheus, DBs etc.)
-            kubectl rollout restart statefulsets -n "$ns" --ignore-not-found
-            
-            # 3. Restart all DaemonSets (Networking, Metrics, CSI drivers)
-            kubectl rollout restart daemonsets -n "$ns" --ignore-not-found
-          done
-          
-          echo "All infrastructure components have been triggered for restart."
-
-      - name: Wait for Rollout Completion
-        run: |
-          echo "Waiting for all resources to become ready..."
-          # Ye command check karegi ke kya resources stable ho gaye hain
-          kubectl wait --for=condition=available --timeout=300s deployments --all -A
-          echo "Infrastructure is now fully synced and healthy."
+    # 4. Terraform Destroy (Poora infrastructure khatam karega)
+    - name: Terraform Destroy
+      run: terraform destroy -auto-approve
