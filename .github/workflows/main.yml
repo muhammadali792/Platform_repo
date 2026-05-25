@@ -1,14 +1,9 @@
 name: 'Destroy Infrastructure'
 
 on:
-  workflow_dispatch: # Sirf manual trigger par chalega
-
-env:
-  # Apne variables yahan define karein ya secrets se uthayein
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
-  TF_STATE_KEY: ${{ secrets.TF_STATE_KEY }}
-  IAM_ROLE_ARN: ${{ secrets.IAM_ROLE_ARN }} # OIDC Role jo aapne AWS mein banaya hai
+  push:
+    branches:
+      - main
 
 jobs:
   destroy:
