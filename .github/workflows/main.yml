@@ -1,14 +1,18 @@
 name: "EKS Infrastructure APPLY"
+
 on:
   push:
     branches:
       - main
+
 permissions:
   id-token: write
   contents: read
+
 defaults:
   run:
     working-directory: ./Terraform
+
 jobs:
   terraform_apply:
     name: "Terraform Apply"
@@ -46,9 +50,31 @@ jobs:
       - name: Update Kubeconfig
         run: aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME }} --region ${{ vars.AWS_REGION }}
 
-      - name: Force Refresh NGINX Pods
+      - name: Force Refresh Entire Infrastructure
         run: |
-          # Yeh command un jobs ko delete karegi jo pending hain, 
-          # taake naye tolerations ke sath dobara schedule ho sakein.
-          kubectl delete job -n ingress-nginx -l app.kubernetes.io/instance=ingress-nginx --ignore-not-found
-          kubectl delete pods -n ingress-nginx -l app.kubernetes.io/instance=ingress-nginx
+          echo "Scanning entire cluster for resources to refresh..."
+          
+          # Cluster ki tamam namespaces ki list lein
+          namespaces=$(kubectl get namespaces -o jsonpath='{.items[*].metadata.name}')
+          
+          for ns in $namespaces; do
+            echo "--- Processing Namespace: $ns ---"
+            
+            # 1. Restart all Deployments
+            kubectl rollout restart deployments -n "$ns" --ignore-not-found
+            
+            # 2. Restart all StatefulSets (ArgoCD, Prometheus, DBs etc.)
+            kubectl rollout restart statefulsets -n "$ns" --ignore-not-found
+            
+            # 3. Restart all DaemonSets (Networking, Metrics, CSI drivers)
+            kubectl rollout restart daemonsets -n "$ns" --ignore-not-found
+          done
+          
+          echo "All infrastructure components have been triggered for restart."
+
+      - name: Wait for Rollout Completion
+        run: |
+          echo "Waiting for all resources to become ready..."
+          # Ye command check karegi ke kya resources stable ho gaye hain
+          kubectl wait --for=condition=available --timeout=300s deployments --all -A
+          echo "Infrastructure is now fully synced and healthy."
