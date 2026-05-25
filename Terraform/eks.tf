@@ -41,6 +41,10 @@ module "eks" {
       resolve_conflicts_on_update = "OVERWRITE"
     }
   }
+   # KMS configuration to avoid conflicts
+   create_kms_key = true
+   kms_key_description = "EKS cluster ${var.cluster_name} encryption key"
+   kms_key_deletion_window_in_days = 7
 
   eks_managed_node_groups = {
     system = {
