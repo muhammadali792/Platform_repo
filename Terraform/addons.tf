@@ -35,9 +35,7 @@ module "eks_addons" {
           value    = "true"
           effect   = "NoSchedule"
         }]
-        nodeSelector = {
-          role = "system"
-        }
+        nodeSelector = { role = "system" }
         config = {
           "force-ssl-redirect" = "false"
           "ssl-redirect"       = "false"
@@ -53,17 +51,20 @@ module "eks_addons" {
           }
         }
       }
+      # Admission Webhooks ke liye teeno jagah toleration add kardi hai
       admissionWebhooks = {
+        enabled = true
         patch = {
-          tolerations = [{
-            key      = "CriticalAddonsOnly"
-            operator = "Equal"
-            value    = "true"
-            effect   = "NoSchedule"
-          }]
-          nodeSelector = {
-            role = "system"
-          }
+          tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+          nodeSelector = { role = "system" }
+        }
+        createSecretJob = {
+          tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+          nodeSelector = { role = "system" }
+        }
+        patchWebhookJob = {
+          tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+          nodeSelector = { role = "system" }
         }
       }
     })]
