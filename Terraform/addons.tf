@@ -27,29 +27,43 @@ module "eks_addons" {
         service = {
           type = "LoadBalancer"
           annotations = {
-            "service.beta.kubernetes.io/aws-load-balancer-type"                  = "external"
-            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"       = "ip"
-            "service.beta.kubernetes.io/aws-load-balancer-scheme"                = "internet-facing"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol"  = "HTTP"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"      = "80"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"      = "/healthz"
+            "service.beta.kubernetes.io/aws-load-balancer-type"               = "external"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"      = "ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"               = "internet-facing"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "HTTP"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "80"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"     = "/healthz"
           }
         }
       }
     })]
   }
 
-  # 3. ARGO CD & ECOSYSTEM
+  # 3. ARGO CD
   enable_argocd = true
   argocd = {
     values = [yamlencode({
-      server        = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
-      controller    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
-      repoServer    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }      notifications = { enabled = true, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
+      server = {
+        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
+      },
+      controller = {
+        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
+      },
+      repoServer = {
+        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
+      },
+      notifications = {
+        enabled      = true
+        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+        nodeSelector = { role = "system" }
+      }
     })]
   }
 
-  # 3.1 ARGO ROLLOUTS (Fixed Parameter Names)
+  # 4. ARGO ROLLOUTS
   enable_argo_rollouts = true
   argo_rollouts = {
     values = [yamlencode({
@@ -60,7 +74,7 @@ module "eks_addons" {
     })]
   }
 
-  # 4. KUBE PROMETHEUS STACK
+  # 5. KUBE PROMETHEUS STACK
   enable_kube_prometheus_stack = true
   kube_prometheus_stack = {
     values = [yamlencode({
@@ -69,8 +83,23 @@ module "eks_addons" {
     })]
   }
 
-  enable_metrics_server   = true
+  # 6. METRICS SERVER
+  enable_metrics_server = true
+  metrics_server = {
+    values = [yamlencode({
+      tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+      nodeSelector = { role = "system" }
+    })]
+  }
+
+  # 7. EXTERNAL SECRETS
   enable_external_secrets = true
+  external_secrets = {
+    values = [yamlencode({
+      tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
+      nodeSelector = { role = "system" }
+    })]
+  }
 
   depends_on = [module.eks]
   tags       = local.common_tags
