@@ -22,6 +22,7 @@ resource "helm_release" "cert_manager" {
   ]
   depends_on = [module.eks]
 }
+/*
 # 2. ClusterIssuer
 resource "kubectl_manifest" "letsencrypt_issuer" {
   yaml_body = <<YAML
@@ -47,3 +48,4 @@ spec:
 YAML
   depends_on = [kubectl_manifest.cert_manager_webhook_duckdns]
 }
+*/
