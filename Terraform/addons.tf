@@ -45,9 +45,7 @@ module "eks_addons" {
     values = [yamlencode({
       server        = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
       controller    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
-      repoServer    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
-      image-updater = { enabled = true, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
-      notifications = { enabled = true, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
+      repoServer    = { tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }      notifications = { enabled = true, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }], nodeSelector = { role = "system" } }
     })]
   }
 
