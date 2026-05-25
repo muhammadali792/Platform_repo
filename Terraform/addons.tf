@@ -1,6 +1,6 @@
 module "eks_addons" {
-  source  = "terraform-aws-modules/eks/aws//modules/eks-blueprints-addon"
-  version = "~> 20.0"
+  source  = "aws-ia/eks-blueprints-addons/aws"
+  version = "1.23.0"
 
   cluster_name      = module.eks.cluster_name
   cluster_endpoint  = module.eks.cluster_endpoint
