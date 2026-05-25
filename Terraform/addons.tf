@@ -24,12 +24,6 @@ module "eks_addons" {
   # NGINX INGRESS
   enable_ingress_nginx = true
   ingress_nginx = {
-    # Timeout, Atomic, aur Cleanup yahan 'helm_config' ke andar jayenge
-    helm_config = {
-      timeout         = 600
-      atomic          = true
-      cleanup_on_fail = true
-    }
     values = [yamlencode({
       controller = {
         replicaCount = 2
@@ -45,11 +39,15 @@ module "eks_addons" {
           "ssl-redirect"       = "false"
         }
         service = {
-          type = "NodePort"
+          type = "LoadBalancer"
           annotations = {
-            #"service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
-            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+            "service.beta.kubernetes.io/aws-load-balancer-type" = "external"
+            "service.beta.kubernetes.io/aws-load-balancer-target-group-attributes" = "deregistration_delay.timeout_seconds=30"
             "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "HTTP"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "healthcheck" # Nginx controller ka internal port
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"     = "/healthz"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval" = "10"
           }
         }
       }
@@ -71,16 +69,6 @@ module "eks_addons" {
   }
   # ArgoCD Addon
   enable_argocd = true
-  argocd = {
-    values = [yamlencode({
-      server = {
-        service = {
-          # Jab tak load balancer issue hai, NodePort use karein
-          type = "NodePort"
-        }
-      }
-    })]
-  }
 
   # CORE ADDONS
   enable_metrics_server   = true
