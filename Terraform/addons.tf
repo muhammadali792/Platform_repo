@@ -7,62 +7,71 @@ module "eks_addons" {
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  # =============================================================================
-
-  # =============================================================================
   # AWS LOAD BALANCER CONTROLLER
-  # =============================================================================
   enable_aws_load_balancer_controller = true
+  aws_load_balancer_controller = {
+    values = [yamlencode({
+      tolerations = [{
+        key      = "CriticalAddonsOnly"
+        operator = "Equal"
+        value    = "true"
+        effect   = "NoSchedule"
+      }]
+      nodeSelector = {
+        role = "system"
+      }
+    })]
+  }
 
-  # =============================================================================
-  # NGINX INGRESS + NLB
-  # =============================================================================
+  # NGINX INGRESS
   enable_ingress_nginx = true
   ingress_nginx = {
-    values = [
-      yamlencode({
-        controller = {
-          replicaCount = 2
-          config = {
-          "force-ssl-redirect" = "true"  
-          "ssl-redirect"       = "true"
-          }
-          service = {
-            type = "LoadBalancer"
-            #externalTrafficPolicy = "Local"
-            annotations = {
-              "service.beta.kubernetes.io/aws-load-balancer-type"            = "nlb"
-              "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
-              "service.beta.kubernetes.io/aws-load-balancer-scheme"                      = "internet-facing"  # public access
-              "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"  # sare zones me traffic
-              "service.beta.kubernetes.io/aws-load-balancer-backend-protocol"            = "tcp"
-            }
+    values = [yamlencode({
+      controller = {
+        replicaCount = 2
+        tolerations = [{
+          key      = "CriticalAddonsOnly"
+          operator = "Equal"
+          value    = "true"
+          effect   = "NoSchedule"
+        }]
+        nodeSelector = {
+          role = "system"
+        }
+        config = {
+          "force-ssl-redirect" = "false"
+          "ssl-redirect"       = "false"
+        }
+        service = {
+          type = "LoadBalancer"
+          annotations = {
+            "service.beta.kubernetes.io/aws-load-balancer-type"                              = "nlb"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                   = "ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"                            = "internet-facing"
+            "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
+            "service.beta.kubernetes.io/aws-load-balancer-backend-protocol"                  = "tcp"
           }
         }
-      })
-    ]
+      }
+    })]
   }
   /*
-  # =============================================================================
-  # ARGOCD & CORE ADDONS
-  # =============================================================================
+  # ARGOCD
   enable_argocd = true
   argocd = {
     namespace = "argocd"
-    values = [
-      yamlencode({
-        server = {
-          ingress = {
-            enabled          = true
-            ingressClassName = "nginx"
-            hosts            = ["argocd.${var.domain_name}"]
-            annotations      = { "cert-manager.io/cluster-issuer" = "letsencrypt-prod" }
-          }
+    values = [yamlencode({
+      server = {
+        ingress = {
+          enabled          = true
+          ingressClassName = "nginx"
+          hosts            = ["argocd.${var.domain_name}"]
         }
-      })
-    ]
+      }
+    })]
   }
   */
+  # CORE ADDONS
   enable_metrics_server   = true
   enable_external_secrets = true
 
