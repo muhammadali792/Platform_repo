@@ -1,7 +1,7 @@
 name: "EKS Infrastructure Destroy"
 
 on:
-  workflow_dispatch: # Sirf manual trigger par chalega
+  workflow_dispatch: 
 
 permissions:
   id-token: write
@@ -30,13 +30,12 @@ jobs:
       - name: Terraform Init
         run: |
           terraform init \
-            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
-            -backend-config="key=cloudaura/terraform.tfstate" \
+            -backend-config="bucket=my-cloudaura-production-bucket" \
+            -backend-config="key=terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}" \
             -backend-config="use_lockfile=true"
 
-      # 1. Pehle Helm releases aur EKS workloads delete karein
-      - name: Terraform Destroy (Workloads)
+      - name: Terraform Destroy (Workloads First)
         run: |
           terraform destroy \
             -target=helm_release.argo_cd \
@@ -44,8 +43,6 @@ jobs:
             -target=helm_release.kube_prometheus_stack \
             -auto-approve
 
-      # 2. Phir baqi poora infrastructure destroy karein
-      - name: Terraform Destroy (Full)
+      - name: Terraform Destroy (Full Infrastructure)
         run: |
-          terraform destroy \
-            -auto-approve
+          terraform destroy -auto-approve
