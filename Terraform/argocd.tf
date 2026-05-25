@@ -1,38 +1,15 @@
-# Ek hi file mein saari configuration aur resources
 locals {
-  # Saari values yahan define hain
   app_values = {
+    # ArgoCD ke liye specific component keys
     argocd = {
-      server = {
-        nodeSelector = { role = "system" }
-        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      }
-      controller = {
-        nodeSelector = { role = "system" }
-        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      }
-      repoServer = {
-        nodeSelector = { role = "system" }
-        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      }
+      server       = { nodeSelector = { "role" = "system" }, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }] }
+      controller   = { nodeSelector = { "role" = "system" }, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }] }
+      repoServer   = { nodeSelector = { "role" = "system" }, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }] }
+      applicationSet = { nodeSelector = { "role" = "system" }, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }] }
     }
+    # Rollouts ke liye
     argo_rollouts = {
-      controller = {
-        nodeSelector = { role = "system" }
-        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      }
-    }
-    prometheus = {
-      prometheus = {
-        prometheusSpec = {
-          nodeSelector = { role = "system" }
-          tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-        }
-      }
-      grafana = {
-        nodeSelector = { role = "system" }
-        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      }
+      controller = { nodeSelector = { "role" = "system" }, tolerations = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }] }
     }
   }
 }
