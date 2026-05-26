@@ -1,7 +1,9 @@
 name: "EKS Infrastructure DESTROY"
 
 on:
-  workflow_dispatch: 
+  push:
+    branches:
+      - main 
 
 permissions:
   id-token: write
@@ -43,8 +45,5 @@ jobs:
             -backend-config="key=cloudaura/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}"
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
-
-      - name: Final Cleanup Confirmation
-        run: echo "Infrastructure successfully destroyed."
+      - name: Terraform apply
+        run: terraform apply -auto-approve
