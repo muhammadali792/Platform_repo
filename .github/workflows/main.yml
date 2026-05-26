@@ -46,4 +46,4 @@ jobs:
             -backend-config="region=${{ vars.AWS_REGION }}"
 
       - name: Terraform apply
-        run: terraform apply -auto-approve
+        run: terraform destroy -auto-approve
