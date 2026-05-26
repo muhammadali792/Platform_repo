@@ -1,4 +1,3 @@
-hcl# ─────────────────────────────────────────────
 # Dynamic IAM Roles for EKS Addons (Pod Identity)
 # ─────────────────────────────────────────────
 resource "aws_iam_role" "addon_roles" {
