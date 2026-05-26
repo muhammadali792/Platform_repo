@@ -5,8 +5,7 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
-  authentication_mode = "API"
-
+  authentication_mode         = "API"
   create_cloudwatch_log_group = false
 
   cluster_endpoint_public_access       = true
@@ -18,7 +17,6 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
-  # 🟢 Updated Syntax for Addons (Fixing Deprecation Warnings)
   cluster_addons = {
     coredns = {
       most_recent                 = true
@@ -41,26 +39,29 @@ module "eks" {
       resolve_conflicts_on_update = "OVERWRITE"
     }
   }
-   # KMS configuration to avoid conflicts
-   create_kms_key = true
-   kms_key_description = "EKS cluster ${var.cluster_name} encryption key"
-   kms_key_deletion_window_in_days = 7
+
+  create_kms_key                  = true
+  kms_key_description             = "EKS cluster ${var.cluster_name} encryption key"
+  kms_key_deletion_window_in_days = 7
 
   eks_managed_node_groups = {
+
+    # ─────────────────────────────────────────────
+    # SYSTEM — sirf AWS core components
+    # coredns, kube-proxy, vpc-cni, ebs-csi
+    # ─────────────────────────────────────────────
     system = {
       node_group_name = "${var.cluster_name}-system"
-      instance_types  = ["t3.small"]
+      instance_types  = ["t3.medium"]
       capacity_type   = "ON_DEMAND"
 
       min_size     = 2
-      max_size     = 6
-      desired_size = 5
+      max_size     = 4
+      desired_size = 2
 
       additional_security_group_ids = [aws_security_group.additional_node_sg.id]
 
-      labels = {
-        role = "system"
-      }
+      labels = { role = "system" }
 
       taints = [{
         key    = "CriticalAddonsOnly"
@@ -68,12 +69,37 @@ module "eks" {
         effect = "NO_SCHEDULE"
       }]
     }
+
+    # ─────────────────────────────────────────────
+    # INFRA — Karpenter, ArgoCD, Prometheus,
+    #         cert-manager, external-secrets
+    # ─────────────────────────────────────────────
+    infra = {
+      node_group_name = "${var.cluster_name}-infra"
+      instance_types  = ["t3.large"]
+      capacity_type   = "ON_DEMAND"
+
+      min_size     = 2
+      max_size     = 4
+      desired_size = 2
+
+      additional_security_group_ids = [aws_security_group.additional_node_sg.id]
+
+      labels = { role = "infra" }
+
+      taints = [{
+        key    = "InfraOnly"
+        value  = "true"
+        effect = "NO_SCHEDULE"
+      }]
+    }
+
   }
 
   tags = {
-    Environment                = var.environment
-    ManagedBy                  = "Terraform"
-    "karpenter.sh/discovery"   = var.cluster_name
+    Environment              = var.environment
+    ManagedBy                = "Terraform"
+    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
@@ -93,9 +119,7 @@ data "aws_iam_policy_document" "ebs_csi_pod_identity_assume" {
 resource "aws_iam_role" "ebs_csi_pod_identity" {
   name               = "${var.cluster_name}-ebs-csi-pod-identity-role"
   assume_role_policy = data.aws_iam_policy_document.ebs_csi_pod_identity_assume.json
-  tags = {
-    Environment = var.environment
-  }
+  tags               = local.common_tags
 }
 
 resource "aws_iam_role_policy_attachment" "ebs_csi_pod_identity" {
@@ -120,7 +144,7 @@ resource "aws_eks_addon" "ebs_csi" {
   depends_on = [
     module.eks,
     aws_eks_pod_identity_association.ebs_csi,
-    aws_iam_role_policy_attachment.ebs_csi_pod_identity
+    aws_iam_role_policy_attachment.ebs_csi_pod_identity,
   ]
 }
 

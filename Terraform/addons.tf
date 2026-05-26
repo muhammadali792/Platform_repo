@@ -7,53 +7,71 @@ module "eks_addons" {
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  # 1. AWS LOAD BALANCER CONTROLLER
+  # ─────────────────────────────────────────────
+  # AWS Load Balancer Controller → SYSTEM node
+  # AWS managed addon hai, system pe theek hai
+  # ─────────────────────────────────────────────
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller = {
     values = [yamlencode({
-      tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      nodeSelector = { role = "system" }
+      tolerations  = local.system_scheduling.tolerations
+      nodeSelector = local.system_scheduling.nodeSelector
     })]
   }
 
-  # 2. NGINX INGRESS
+  # ─────────────────────────────────────────────
+  # NGINX Ingress → INFRA node
+  # ─────────────────────────────────────────────
   enable_ingress_nginx = true
   ingress_nginx = {
     values = [yamlencode({
       controller = {
         replicaCount = 2
-        tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-        nodeSelector = { role = "system" }
+        tolerations  = local.infra_scheduling.tolerations
+        nodeSelector = local.infra_scheduling.nodeSelector
         service = {
           type = "LoadBalancer"
           annotations = {
-            "service.beta.kubernetes.io/aws-load-balancer-type"               = "external"
-            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"      = "ip"
-            "service.beta.kubernetes.io/aws-load-balancer-scheme"               = "internet-facing"
+            "service.beta.kubernetes.io/aws-load-balancer-type"                = "external"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"     = "ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"              = "internet-facing"
             "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "HTTP"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "80"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"     = "/healthz"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"    = "80"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"    = "/healthz"
           }
         }
       }
     })]
   }
 
-  # 6. METRICS SERVER
+  # ─────────────────────────────────────────────
+  # Metrics Server → SYSTEM node
+  # Core Kubernetes metrics, system pe sahi hai
+  # ─────────────────────────────────────────────
   enable_metrics_server = true
   metrics_server = {
     values = [yamlencode({
-      tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      nodeSelector = { role = "system" }
+      tolerations  = local.system_scheduling.tolerations
+      nodeSelector = local.system_scheduling.nodeSelector
     })]
   }
 
-  # 7. EXTERNAL SECRETS
+  # ─────────────────────────────────────────────
+  # External Secrets → INFRA node
+  # ─────────────────────────────────────────────
   enable_external_secrets = true
   external_secrets = {
     values = [yamlencode({
-      tolerations  = [{ key = "CriticalAddonsOnly", operator = "Equal", value = "true", effect = "NoSchedule" }]
-      nodeSelector = { role = "system" }
+      tolerations  = local.infra_scheduling.tolerations
+      nodeSelector = local.infra_scheduling.nodeSelector
+      webhook = {
+        tolerations  = local.infra_scheduling.tolerations
+        nodeSelector = local.infra_scheduling.nodeSelector
+      }
+      certController = {
+        tolerations  = local.infra_scheduling.tolerations
+        nodeSelector = local.infra_scheduling.nodeSelector
+      }
     })]
   }
 
