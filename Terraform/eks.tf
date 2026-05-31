@@ -52,7 +52,7 @@ module "eks" {
     # ─────────────────────────────────────────────
     system = {
       node_group_name = "${var.cluster_name}-system"
-      instance_types  = ["t3.medium"]
+      instance_types  = ["t3.micro"]
       capacity_type   = "ON_DEMAND"
 
       min_size     = 2
@@ -76,7 +76,7 @@ module "eks" {
     # ─────────────────────────────────────────────
     infra = {
       node_group_name = "${var.cluster_name}-infra"
-      instance_types  = ["t3.large"]
+      instance_types  = ["t3.micro"]
       capacity_type   = "ON_DEMAND"
 
       min_size     = 2
