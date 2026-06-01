@@ -1,4 +1,5 @@
 eks_addons_security_config = {
+  # Pehle se maujood configs...
   aws-load-balancer-controller = {
     namespace       = "kube-system"
     service_account = "aws-load-balancer-controller"
@@ -11,10 +12,16 @@ eks_addons_security_config = {
     policy_arn      = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
   }
 
-  # Image Updater ki configuration
   argocd-image-updater = {
     namespace       = "argocd"
     service_account = "argocd-image-updater-sa"
     policy_arn      = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  }
+
+  # Naya add kiya gaya hissa:
+  ebs-csi = {
+    namespace       = "kube-system"
+    service_account = "ebs-csi-controller-sa"
+    policy_arn      = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   }
 }
