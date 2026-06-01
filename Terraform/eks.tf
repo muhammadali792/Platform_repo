@@ -40,8 +40,6 @@ module "eks" {
     }
   }
 
-  create_kms_key                  = false
-
   eks_managed_node_groups = {
 
     # ─────────────────────────────────────────────
