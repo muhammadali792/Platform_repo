@@ -37,7 +37,7 @@ module "eks" {
       most_recent                 = true
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
-    
+    }
     eks-pod-identity-agent = {
       most_recent                 = true
       resolve_conflicts_on_create = "OVERWRITE"
