@@ -43,11 +43,7 @@ jobs:
           terraform init \
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
             -backend-config="key=cloudaura/terraform.tfstate" \
-            -backend-config="region=${{ vars.AWS_REGION }}"
-
-      - name: Force Unlock Terraform State
-        run: |
-          terraform force-unlock -force     
+            -backend-config="region=${{ vars.AWS_REGION }}"     
       - name: Import KMS Alias
         # Error se bachne ke liye continue-on-error use kiya hai
         continue-on-error: true 
