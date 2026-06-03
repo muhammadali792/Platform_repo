@@ -51,10 +51,6 @@ jobs:
           # 2. Import KMS Alias
           terraform state list | grep 'module.eks.module.kms.aws_kms_alias.this\["cluster"\]' || \
           terraform import "module.eks.module.kms.aws_kms_alias.this[\"cluster\"]" "alias/eks/cloudaura-eks-cluster"
-
-          # 3. Import EBS CSI Add-on
-          terraform state list | grep 'module.eks.aws_eks_addon.this\["aws-ebs-csi-driver"\]' || \
-          terraform import "module.eks.aws_eks_addon.this[\"aws-ebs-csi-driver\"]" cloudaura-eks-cluster:aws-ebs-csi-driver
-
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+          
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
