@@ -5,8 +5,8 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
-  authentication_mode         = "API"
-  create_cloudwatch_log_group = false
+  authentication_mode             = "API"
+  create_cloudwatch_log_group     = false
 
   cluster_endpoint_public_access       = true
   cluster_endpoint_private_access      = true
@@ -19,41 +19,49 @@ module "eks" {
 
   cluster_addons = {
     coredns = {
-      most_recent                 = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                   = true
+      resolve_conflicts_on_create   = "OVERWRITE"
+      resolve_conflicts_on_update   = "OVERWRITE"
     }
     kube-proxy = {
-      most_recent                 = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                   = true
+      resolve_conflicts_on_create   = "OVERWRITE"
+      resolve_conflicts_on_update   = "OVERWRITE"
     }
     vpc-cni = {
-      most_recent                 = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                   = true
+      resolve_conflicts_on_create   = "OVERWRITE"
+      resolve_conflicts_on_update   = "OVERWRITE"
     }
     aws-ebs-csi-driver = {
-      most_recent                 = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                   = true
+      resolve_conflicts_on_create   = "OVERWRITE"
+      resolve_conflicts_on_update   = "OVERWRITE"
+      
+      configuration_values = jsonencode({
+        controller = {
+          tolerations = [
+            {
+              key      = "CriticalAddonsOnly"
+              operator = "Equal"
+              value    = "true"
+              effect   = "NoSchedule"
+            }
+          ]
+        }
+      })
     }
     eks-pod-identity-agent = {
-      most_recent                 = true
-      resolve_conflicts_on_create = "OVERWRITE"
-      resolve_conflicts_on_update = "OVERWRITE"
+      most_recent                   = true
+      resolve_conflicts_on_create   = "OVERWRITE"
+      resolve_conflicts_on_update   = "OVERWRITE"
     }
   }
 
   eks_managed_node_groups = {
-
-    # ─────────────────────────────────────────────
-    # SYSTEM — sirf AWS core components
-    # coredns, kube-proxy, vpc-cni, ebs-csi
-    # ─────────────────────────────────────────────
     system = {
       node_group_name = "${var.cluster_name}-system"
-      instance_types  = ["t3.micro"]
+      instance_types  = ["t3.medium"] 
       capacity_type   = "ON_DEMAND"
 
       min_size     = 2
@@ -71,13 +79,9 @@ module "eks" {
       }]
     }
 
-    # ─────────────────────────────────────────────
-    # INFRA — Karpenter, ArgoCD, Prometheus,
-    #         cert-manager, external-secrets
-    # ─────────────────────────────────────────────
     infra = {
       node_group_name = "${var.cluster_name}-infra"
-      instance_types  = ["t3.micro"]
+      instance_types  = ["t3.medium"]
       capacity_type   = "ON_DEMAND"
 
       min_size     = 2
@@ -94,7 +98,6 @@ module "eks" {
         effect = "NO_SCHEDULE"
       }]
     }
-
   }
 
   tags = {
@@ -103,9 +106,7 @@ module "eks" {
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
-# ─────────────────────────────────────────────
-# Karpenter IAM — Pod Identity
-# ─────────────────────────────────────────────
+
 module "karpenter_iam" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
   version = "~> 20.0"
