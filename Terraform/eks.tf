@@ -1,3 +1,7 @@
+# ─────────────────────────────────────────────
+# EKS Cluster + Node Groups + Addons
+# ─────────────────────────────────────────────
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.31"
@@ -5,8 +9,8 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
-  authentication_mode             = "API"
-  create_cloudwatch_log_group     = false
+  authentication_mode         = "API"
+  create_cloudwatch_log_group = false
 
   cluster_endpoint_public_access       = true
   cluster_endpoint_private_access      = true
@@ -19,25 +23,38 @@ module "eks" {
 
   cluster_addons = {
     coredns = {
-      most_recent                   = true
-      resolve_conflicts_on_create   = "OVERWRITE"
-      resolve_conflicts_on_update   = "OVERWRITE"
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
+      configuration_values = jsonencode({
+        tolerations = [
+          {
+            key      = "CriticalAddonsOnly"
+            operator = "Equal"
+            value    = "true"
+            effect   = "NoSchedule"
+          }
+        ]
+      })
     }
+
     kube-proxy = {
-      most_recent                   = true
-      resolve_conflicts_on_create   = "OVERWRITE"
-      resolve_conflicts_on_update   = "OVERWRITE"
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
+
     vpc-cni = {
-      most_recent                   = true
-      resolve_conflicts_on_create   = "OVERWRITE"
-      resolve_conflicts_on_update   = "OVERWRITE"
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
+
     aws-ebs-csi-driver = {
-      most_recent                   = true
-      resolve_conflicts_on_create   = "OVERWRITE"
-      resolve_conflicts_on_update   = "OVERWRITE"
-      
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
+      service_account_role_arn    = aws_iam_role.addon_roles["ebs-csi"].arn
       configuration_values = jsonencode({
         controller = {
           tolerations = [
@@ -51,17 +68,20 @@ module "eks" {
         }
       })
     }
+
     eks-pod-identity-agent = {
-      most_recent                   = true
-      resolve_conflicts_on_create   = "OVERWRITE"
-      resolve_conflicts_on_update   = "OVERWRITE"
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
     }
   }
 
   eks_managed_node_groups = {
+
+    # ── System Node Group ──────────────────────
     system = {
       node_group_name = "${var.cluster_name}-system"
-      instance_types  = ["t3.micro"] 
+      instance_types  = ["c7i-flex.large"]
       capacity_type   = "ON_DEMAND"
 
       min_size     = 2
@@ -79,6 +99,7 @@ module "eks" {
       }]
     }
 
+    # ── Infra Node Group ───────────────────────
     infra = {
       node_group_name = "${var.cluster_name}-infra"
       instance_types  = ["t3.micro"]
@@ -106,6 +127,10 @@ module "eks" {
     "karpenter.sh/discovery" = var.cluster_name
   }
 }
+
+# ─────────────────────────────────────────────
+# Karpenter IAM + Pod Identity
+# ─────────────────────────────────────────────
 
 module "karpenter_iam" {
   source  = "terraform-aws-modules/eks/aws//modules/karpenter"
