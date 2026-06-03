@@ -1,4 +1,4 @@
-name: "EKS Infrastructure DESTROY"
+name: "EKS Infrastructure Build"
 
 on:
   workflow_dispatch:
