@@ -8,31 +8,50 @@ locals {
 }
 
 # 1. Random Secrets
-resource "random_password" "db_pass" { length = 16 }
+resource "random_password" "db_pass"    { length = 16 }
 resource "random_password" "jwt_secret" { length = 32 }
 resource "random_password" "redis_pass" { length = 16 }
 
-# 2. Security Group (Firewall)
+# 2. Security Group
 resource "aws_security_group" "db_sg" {
   name        = "main-db-sg"
   description = "Access for DB and Redis"
   vpc_id      = module.vpc.vpc_id
-  
+
   ingress {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [module.vpc.vpc_cidr_block]  # 0.0.0.0/0 ki jagah sirf VPC CIDR
   }
+
   ingress {
     from_port   = 6379
     to_port     = 6379
     protocol    = "tcp"
+    cidr_blocks = [module.vpc.vpc_cidr_block]  # 0.0.0.0/0 ki jagah sirf VPC CIDR
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
-# 3. Infrastructure
+# 3. Subnet Groups
+resource "aws_db_subnet_group" "main" {
+  name       = "main-db-subnet-group"
+  subnet_ids = module.vpc.private_subnets
+}
+
+resource "aws_elasticache_subnet_group" "main" {
+  name       = "main-redis-subnet-group"
+  subnet_ids = module.vpc.private_subnets
+}
+
+# 4. Infrastructure
 resource "aws_db_instance" "main_db" {
   engine                 = "postgres"
   instance_class         = "db.t3.micro"
@@ -41,6 +60,7 @@ resource "aws_db_instance" "main_db" {
   username               = "postgres"
   password               = random_password.db_pass.result
   vpc_security_group_ids = [aws_security_group.db_sg.id]
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   skip_final_snapshot    = true
 }
 
@@ -50,34 +70,36 @@ resource "aws_elasticache_cluster" "main_redis" {
   node_type            = "cache.t4g.micro"
   num_cache_nodes      = 1
   security_group_ids   = [aws_security_group.db_sg.id]
+  subnet_group_name    = aws_elasticache_subnet_group.main.name
   port                 = 6379
 }
 
-# 4. Secrets Manager
+# 5. Secrets Manager
 resource "aws_secretsmanager_secret" "service_secrets" {
-  for_each = local.services
-  name     = "${each.key}-service/secrets"
+  for_each                = local.services
+  name                    = "${each.key}-service/secrets"
+  recovery_window_in_days = 0  # Pehle wale deleted secrets ko override karo
 }
 
 resource "aws_secretsmanager_secret_version" "secrets_val" {
   for_each  = local.services
   secret_id = aws_secretsmanager_secret.service_secrets[each.key].id
+
   secret_string = jsonencode(merge(
-    local.services[each.key].needs_jwt ? { JWT_SECRET = random_password.jwt_secret.result } : {},
-    local.services[each.key].rds   ? { DATABASE_URL = "postgresql://postgres:${random_password.db_pass.result}@${aws_db_instance.main_db.address}:5432/${each.key}_db" } : {},
-    local.services[each.key].redis ? { REDIS_URL    = "redis://:${random_password.redis_pass.result}@${aws_elasticache_cluster.main_redis.cache_nodes[0].address}:6379" } : {}
+    local.services[each.key].needs_jwt ? { JWT_SECRET    = random_password.jwt_secret.result } : {},
+    local.services[each.key].rds       ? { DATABASE_URL  = "postgresql://postgres:${random_password.db_pass.result}@${aws_db_instance.main_db.address}:5432/${each.key}_db" } : {},
+    local.services[each.key].redis     ? { REDIS_URL     = "redis://:${random_password.redis_pass.result}@${aws_elasticache_cluster.main_redis.cache_nodes[0].address}:6379" } : {}
   ))
 }
 
-# 5. Database Auto-Creation (Professional & Idempotent)
+# 6. Database Auto-Creation
 resource "null_resource" "init_db" {
   depends_on = [aws_db_instance.main_db]
-  # Yahan filter apply kiya gaya hai
   for_each   = { for k, v in local.services : k => v if v.rds }
 
   provisioner "local-exec" {
     command = "psql -h ${aws_db_instance.main_db.address} -U postgres -d postgres -c 'CREATE DATABASE ${each.key}_db;' || true"
-    
+
     environment = {
       PGPASSWORD = random_password.db_pass.result
     }
