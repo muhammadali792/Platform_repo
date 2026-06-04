@@ -54,6 +54,10 @@ locals {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
       }
+      hooks = {
+        enabled = true
+        nodeSelector = local.infra_scheduling.nodeSelector
+        tolerations  = local.infra_scheduling.tolerations
       redis = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
