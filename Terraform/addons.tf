@@ -9,7 +9,6 @@ module "eks_addons" {
 
   # ─────────────────────────────────────────────
   # AWS Load Balancer Controller → SYSTEM node
-  # AWS managed addon hai, system pe theek hai
   # ─────────────────────────────────────────────
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller = {
@@ -29,15 +28,25 @@ module "eks_addons" {
         replicaCount = 2
         tolerations  = local.infra_scheduling.tolerations
         nodeSelector = local.infra_scheduling.nodeSelector
+        admissionWebhooks = {
+          patch = {
+            tolerations  = local.infra_scheduling.tolerations
+            nodeSelector = local.infra_scheduling.nodeSelector
+          }
+        }
+        defaultBackend = {
+          tolerations  = local.infra_scheduling.tolerations
+          nodeSelector = local.infra_scheduling.nodeSelector
+        }
         service = {
           type = "LoadBalancer"
           annotations = {
-            "service.beta.kubernetes.io/aws-load-balancer-type"                = "external"
-            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"     = "ip"
-            "service.beta.kubernetes.io/aws-load-balancer-scheme"              = "internet-facing"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "HTTP"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"    = "80"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"    = "/healthz"
+            "service.beta.kubernetes.io/aws-load-balancer-type"                      = "external"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"           = "ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"                    = "internet-facing"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol"      = "HTTP"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"          = "80"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"          = "/healthz"
           }
         }
       }
@@ -46,7 +55,6 @@ module "eks_addons" {
 
   # ─────────────────────────────────────────────
   # Metrics Server → SYSTEM node
-  # Core Kubernetes metrics, system pe sahi hai
   # ─────────────────────────────────────────────
   enable_metrics_server = true
   metrics_server = {
@@ -62,9 +70,9 @@ module "eks_addons" {
   enable_external_secrets = true
   external_secrets = {
     values = [yamlencode({
-      tolerations  = local.infra_scheduling.tolerations
-      nodeSelector = local.infra_scheduling.nodeSelector
-      webhook = {
+      tolerations    = local.infra_scheduling.tolerations
+      nodeSelector   = local.infra_scheduling.nodeSelector
+      webhook        = {
         tolerations  = local.infra_scheduling.tolerations
         nodeSelector = local.infra_scheduling.nodeSelector
       }
