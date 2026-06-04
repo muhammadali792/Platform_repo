@@ -27,14 +27,8 @@ module "eks" {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
       configuration_values = jsonencode({
-        tolerations = [
-          {
-            key      = "CriticalAddonsOnly"
-            operator = "Equal"
-            value    = "true"
-            effect   = "NoSchedule"
-          }
-        ]
+        nodeSelector = local.system_scheduling.nodeSelector
+        tolerations  = local.system_scheduling.tolerations
       })
     }
 
