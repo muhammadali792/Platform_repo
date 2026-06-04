@@ -46,6 +46,10 @@ resource "helm_release" "cert_manager" {
       tolerations  = local.infra_scheduling.tolerations
       nodeSelector = local.infra_scheduling.nodeSelector
     }
+    startupapicheck = {
+      nodeSelector = local.infra_scheduling.nodeSelector
+      tolerations  = local.infra_scheduling.tolerations
+    }
     webhook = {
       tolerations  = local.infra_scheduling.tolerations
       nodeSelector = local.infra_scheduling.nodeSelector
