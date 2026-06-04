@@ -6,11 +6,10 @@ locals {
 
   # ─────────────────────────────────────────────
   # Scheduling: SYSTEM nodes
-  # Sirf AWS core components ke liye
   # ─────────────────────────────────────────────
   system_scheduling = {
     nodeSelector = { role = "system" }
-    tolerations  = [{
+    tolerations = [{
       key      = "CriticalAddonsOnly"
       operator = "Equal"
       value    = "true"
@@ -20,11 +19,10 @@ locals {
 
   # ─────────────────────────────────────────────
   # Scheduling: INFRA nodes
-  # Karpenter, ArgoCD, Prometheus, cert-manager
   # ─────────────────────────────────────────────
   infra_scheduling = {
     nodeSelector = { role = "infra" }
-    tolerations  = [{
+    tolerations = [{
       key      = "InfraOnly"
       operator = "Equal"
       value    = "true"
@@ -36,7 +34,6 @@ locals {
   # Helm values per tool
   # ─────────────────────────────────────────────
   app_values = {
-
     argocd = {
       server = {
         nodeSelector = local.infra_scheduling.nodeSelector
@@ -55,9 +52,10 @@ locals {
         tolerations  = local.infra_scheduling.tolerations
       }
       hooks = {
-        enabled = true
+        enabled      = true
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
+      }
       redis = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
@@ -68,12 +66,27 @@ locals {
       controller = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
+        metrics = {
+          enabled      = true
+          nodeSelector = local.infra_scheduling.nodeSelector
+          tolerations  = local.infra_scheduling.tolerations
+        }
+      }
+      dashboard = {
+        nodeSelector = local.infra_scheduling.nodeSelector
+        tolerations  = local.infra_scheduling.tolerations
       }
     }
 
     prometheus = {
       prometheus = {
         prometheusSpec = {
+          nodeSelector = local.infra_scheduling.nodeSelector
+          tolerations  = local.infra_scheduling.tolerations
+        }
+      }
+      thanosRuler = {
+        thanosRulerSpec = {
           nodeSelector = local.infra_scheduling.nodeSelector
           tolerations  = local.infra_scheduling.tolerations
         }
@@ -99,7 +112,6 @@ locals {
       prometheusOperator = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
-        #admissionWebhooks 
         admissionWebhooks = {
           patch = {
             nodeSelector = local.infra_scheduling.nodeSelector
