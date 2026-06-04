@@ -78,6 +78,14 @@ locals {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
       }
+      kubeStateMetrics = {
+        nodeSelector = local.infra_scheduling.nodeSelector
+        tolerations  = local.infra_scheduling.tolerations
+      }
+      prometheusNodeExporter = {
+        nodeSelector = local.infra_scheduling.nodeSelector
+        tolerations  = local.infra_scheduling.tolerations
+      }
       alertmanager = {
         alertmanagerSpec = {
           nodeSelector = local.infra_scheduling.nodeSelector
