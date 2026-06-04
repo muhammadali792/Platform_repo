@@ -35,6 +35,15 @@ locals {
   # ─────────────────────────────────────────────
   app_values = {
     argocd = {
+      global = {
+        nodeSelector = { role = "infra" }
+        tolerations = [{
+          key      = "InfraOnly"
+          operator = "Equal"
+          value    = "true"
+          effect   = "NoSchedule"
+        }]
+      }
       server = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
