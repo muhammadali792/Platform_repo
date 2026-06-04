@@ -94,7 +94,7 @@ module "eks" {
     # ── Infra Node Group ───────────────────────
     infra = {
       node_group_name = "${var.cluster_name}-infra"
-      instance_types  = ["t3.micro"]
+      instance_types  = ["c7i-flex.large"]
       capacity_type   = "ON_DEMAND"
 
       min_size     = 2
