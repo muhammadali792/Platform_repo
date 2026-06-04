@@ -128,6 +128,45 @@ module "eks" {
   }
 }
 
+# EBS CSI Driver IAM — Pod Identity
+# ─────────────────────────────────────────────
+
+# 1. Trust Policy jo Pod Identity Agent ko allow karti hai
+data "aws_iam_policy_document" "ebs_csi_pod_identity_assume" {
+  statement {
+    actions = ["sts:AssumeRole", "sts:TagSession"]
+    principals {
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
+    }
+  }
+}
+
+# 2. IAM Role banana
+resource "aws_iam_role" "ebs_csi_pod_identity" {
+  name               = "${var.cluster_name}-ebs-csi-pod-identity-role"
+  assume_role_policy = data.aws_iam_policy_document.ebs_csi_pod_identity_assume.json
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+# 3. AWS ki AWS-managed EBS Policy attach karna
+resource "aws_iam_role_policy_attachment" "ebs_csi_pod_identity" {
+  role       = aws_iam_role.ebs_csi_pod_identity.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+# 4. Role ko EBS CSI ke Service Account ke sath map karna
+resource "aws_eks_pod_identity_association" "ebs_csi" {
+  cluster_name    = module.eks.cluster_name
+  namespace       = "kube-system"
+  service_account = "ebs-csi-controller-sa"
+  role_arn        = aws_iam_role.ebs_csi_pod_identity.arn
+}
+
+
 # ─────────────────────────────────────────────
 # Karpenter IAM + Pod Identity
 # ─────────────────────────────────────────────
