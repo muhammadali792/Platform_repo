@@ -17,11 +17,4 @@ eks_addons_security_config = {
     service_account = "argocd-image-updater-sa"
     policy_arn      = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   }
-
-  # Naya add kiya gaya hissa:
-  ebs-csi = {
-    namespace       = "kube-system"
-    service_account = "ebs-csi-controller-sa"
-    policy_arn      = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  }
 }
