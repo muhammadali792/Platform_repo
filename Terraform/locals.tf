@@ -104,7 +104,7 @@ locals {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
       }
-      kubeStateMetrics = {
+      kube-state-metrics = {
         enabled = true
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
