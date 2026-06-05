@@ -51,11 +51,6 @@ module "eks" {
 
       configuration_values = jsonencode({
         controller = {
-          serviceAccount = {
-            annotations = {
-              "eks.amazonaws.com/role-arn" = null
-            }
-          }
           nodeSelector = local.system_scheduling.nodeSelector
           tolerations  = local.system_scheduling.tolerations
         },
