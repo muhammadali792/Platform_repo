@@ -14,7 +14,7 @@ eks_addons_security_config = {
 
   ebs-csi-controller = {
     namespace       = "kube-system"
-    service_account = "ebs-csi-controller"
+    service_account = "ebs-csi-controller-sa"
     policy_arn      = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   }
 
