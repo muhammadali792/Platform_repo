@@ -43,6 +43,22 @@ module "eks" {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
     }
+    aws-ebs-csi-driver = {
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
+      service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
+      configuration_values = jsonencode({
+       controller = {
+        nodeSelector = local.system_scheduling.nodeSelector
+        tolerations  = local.system_scheduling.tolerations
+     }
+     node = {
+      nodeSelector = local.system_scheduling.nodeSelector
+      tolerations  = local.system_scheduling.tolerations
+    }
+  })
+}
    
     eks-pod-identity-agent = {
       most_recent                 = true
