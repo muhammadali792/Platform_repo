@@ -17,6 +17,22 @@ module "eks_addons" {
       nodeSelector = local.system_scheduling.nodeSelector
     })]
   }
+  # ─────────────────────────────────────────────
+  # EBS CSI Driver → SYSTEM node
+  # ─────────────────────────────────────────────
+  enable_aws_ebs_csi_amazon_ebs = true
+  aws_ebs_csi_amazon_ebs = {
+    values = [yamlencode({
+      controller = {
+        nodeSelector = local.system_scheduling.nodeSelector
+        tolerations  = local.system_scheduling.tolerations
+      }
+      node = {
+        nodeSelector = local.system_scheduling.nodeSelector
+        tolerations  = local.system_scheduling.tolerations
+      }
+    })]
+  }
 
   # ─────────────────────────────────────────────
   # NGINX Ingress → INFRA node
