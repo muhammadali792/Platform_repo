@@ -12,7 +12,7 @@ defaults:
     working-directory: ./Terraform
 
 jobs:
-  terraform_apply:
+  terraform_destroy:
     name: "Terraform Apply"
     runs-on: ubuntu-latest
     steps:
@@ -31,6 +31,11 @@ jobs:
           terraform_version: "1.9.8"
           terraform_wrapper: false
 
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+
       - name: Terraform Init
         run: |
           terraform init -upgrade \
@@ -42,17 +47,6 @@ jobs:
         run: |
           # 1. Force Unlock (agar purana lock phans gaya ho)
           terraform force-unlock -force || echo "No lock to remove"
-          
-          # 2. Conditional Import (agar resource state mein na ho)
-          if ! terraform state show 'module.eks.aws_eks_addon.this["aws-ebs-csi-driver"]' > /dev/null 2>&1; then
-            echo "Resource not in state. Importing aws-ebs-csi-driver..."
-            terraform import 'module.eks.aws_eks_addon.this["aws-ebs-csi-driver"]' cloudaura-eks-cluster:aws-ebs-csi-driver
-          else
-            echo "aws-ebs-csi-driver already exists in Terraform state. Skipping import."
-          fi
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve
