@@ -17,23 +17,7 @@ module "eks_addons" {
       nodeSelector = local.system_scheduling.nodeSelector
     })]
   }
-  # Sahi parameter name:
-  enable_aws_ebs_csi_driver = true
-
-  # Sahi object name:
-  aws_ebs_csi_driver = {
-    values = [yamlencode({
-      controller = {
-        nodeSelector = local.system_scheduling.nodeSelector
-        tolerations  = local.system_scheduling.tolerations
-      }
-      node = {
-        nodeSelector = local.system_scheduling.nodeSelector
-        tolerations  = local.system_scheduling.tolerations
-      }
-    })]
-  }
-
+ 
   # ─────────────────────────────────────────────
   # NGINX Ingress → INFRA node
   # ─────────────────────────────────────────────
