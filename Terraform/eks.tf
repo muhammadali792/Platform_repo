@@ -43,7 +43,7 @@ module "eks" {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
     }
-    ebs_csi_driver = {
+    aws-ebs-csi-driver = {
       most_recent = true
       # IRSA annotation ko block karne ke liye yeh configuration add karein
       configuration_values = jsonencode({
