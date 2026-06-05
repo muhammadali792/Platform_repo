@@ -1,5 +1,8 @@
+# 1. EBS CSI Driver ke liye IRSA (IAM Role) banayein
 module "ebs_csi_irsa_role" {
-  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.30"
+
   role_name = "ebs-csi-controller-role"
 
   role_policy_arns = {
