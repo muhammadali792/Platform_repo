@@ -48,9 +48,6 @@ module "eks" {
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
       
-      # IRSA ko force-disable karne ke liye role ARN null rakhein
-      service_account_role_arn = null
-
       configuration_values = jsonencode({
         controller = {
           nodeSelector = local.system_scheduling.nodeSelector
