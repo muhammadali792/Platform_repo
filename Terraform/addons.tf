@@ -20,7 +20,7 @@ module "eks_addons" {
   # ─────────────────────────────────────────────
   # EBS CSI Driver → SYSTEM node
   # ─────────────────────────────────────────────
-  enable_aws_ebs_csi_amazon_ebs = true
+  enable_amazon_eks_aws_ebs_csi_driver = true
   aws_ebs_csi_amazon_ebs = {
     values = [yamlencode({
       controller = {
