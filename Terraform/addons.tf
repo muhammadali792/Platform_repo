@@ -17,11 +17,11 @@ module "eks_addons" {
       nodeSelector = local.system_scheduling.nodeSelector
     })]
   }
-  # ─────────────────────────────────────────────
-  # EBS CSI Driver → SYSTEM node
-  # ─────────────────────────────────────────────
-  enable_amazon_eks_aws_ebs_csi_driver = true
-  aws_ebs_csi_amazon_ebs = {
+  # Sahi parameter name:
+  enable_aws_ebs_csi_driver = true
+
+  # Sahi object name:
+  aws_ebs_csi_driver = {
     values = [yamlencode({
       controller = {
         nodeSelector = local.system_scheduling.nodeSelector
