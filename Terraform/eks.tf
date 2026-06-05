@@ -48,6 +48,7 @@ module "eks" {
       most_recent                     = true
       resolve_conflicts_on_create = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
+      service_account_role_arn    = aws_iam_role.addon_roles["ebs-csi-controller"].arn
       
       configuration_values = jsonencode({
         controller = {
