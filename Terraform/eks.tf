@@ -44,16 +44,17 @@ module "eks" {
       resolve_conflicts_on_update = "OVERWRITE"
     }
     aws-ebs-csi-driver = {
-      most_recent = true
-      # IRSA annotation ko block karne ke liye yeh configuration add karein
+      most_recent                 = true
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "OVERWRITE"
+      
+      # IRSA ko force-disable karne ke liye role ARN null rakhein
+      service_account_role_arn = null
+
       configuration_values = jsonencode({
         controller = {
           nodeSelector = local.system_scheduling.nodeSelector
           tolerations  = local.system_scheduling.tolerations
-          serviceAccount = {
-            create = true
-            annotations = {} # <--- Yeh line crucial hai (IRSA annotation ko block karti hai)
-          }
         }
         node = {
           nodeSelector = local.system_scheduling.nodeSelector
@@ -62,7 +63,6 @@ module "eks" {
       })
     }
     
-
     eks-pod-identity-agent = {
       most_recent                 = true
       resolve_conflicts_on_create = "OVERWRITE"
