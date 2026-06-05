@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   terraform_destroy:
-    name: "Terraform Destroy"
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
