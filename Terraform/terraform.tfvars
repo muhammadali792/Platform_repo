@@ -1,4 +1,5 @@
 eks_addons_security_config = {
+  /*
   # Pehle se maujood configs...
   aws-load-balancer-controller = {
     namespace       = "kube-system"
@@ -17,6 +18,7 @@ eks_addons_security_config = {
     service_account = "ebs-csi-controller-sa"
     policy_arn      = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   }
+  */
 
   argocd-image-updater = {
     namespace       = "argocd"
