@@ -19,6 +19,21 @@ module "eks_addons" {
       nodeSelector = local.system_scheduling.nodeSelector
     })]
   }
+  aws-ebs-csi-driver = {
+  most_recent              = true
+  service_account_role_arn = aws_iam_role.addon_roles["ebs-csi-controller"].arn
+  configuration_values = jsonencode({
+    controller = {
+      nodeSelector = local.system_scheduling.nodeSelector
+      tolerations  = local.system_scheduling.tolerations
+    }
+    node = {
+      nodeSelector = local.system_scheduling.nodeSelector
+      tolerations  = local.system_scheduling.tolerations
+    }
+  })
+}
+
  
   # ─────────────────────────────────────────────
   # NGINX Ingress → INFRA node
