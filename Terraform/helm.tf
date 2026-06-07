@@ -87,6 +87,7 @@ resource "helm_release" "argocd_image_updater" {
     aws_eks_pod_identity_association.addon_associations,
   ]
 }
+/*
 resource "helm_release" "ebs_csi_driver" {
   name             = "aws-ebs-csi-driver"
   repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
@@ -111,3 +112,4 @@ resource "helm_release" "ebs_csi_driver" {
 
   depends_on = [module.eks]
 }
+*/
