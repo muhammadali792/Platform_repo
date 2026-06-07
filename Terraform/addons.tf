@@ -7,37 +7,36 @@ module "eks_addons" {
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  # ─────────────────────────────────────────────
-  # AWS Load Balancer Controller → SYSTEM node
-  # ─────────────────────────────────────────────
+  # EKS Managed Addons
+  eks_addons = {
+    aws-ebs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = aws_iam_role.addon_roles["ebs-csi-controller"].arn
+      configuration_values = jsonencode({
+        controller = {
+          nodeSelector = local.system_scheduling.nodeSelector
+          tolerations  = local.system_scheduling.tolerations
+        }
+        node = {
+          nodeSelector = local.system_scheduling.nodeSelector
+          tolerations  = local.system_scheduling.tolerations
+        }
+      })
+    }
+  }
+
+  # LB Controller
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller = {
     wait    = true
-    timeout = "600" # 10 minute tak intezar karega
+    timeout = "600"
     values = [yamlencode({
       tolerations  = local.system_scheduling.tolerations
       nodeSelector = local.system_scheduling.nodeSelector
     })]
   }
-  aws-ebs-csi-driver = {
-  most_recent              = true
-  service_account_role_arn = aws_iam_role.addon_roles["ebs-csi-controller"].arn
-  configuration_values = jsonencode({
-    controller = {
-      nodeSelector = local.system_scheduling.nodeSelector
-      tolerations  = local.system_scheduling.tolerations
-    }
-    node = {
-      nodeSelector = local.system_scheduling.nodeSelector
-      tolerations  = local.system_scheduling.tolerations
-    }
-  })
-}
 
- 
-  # ─────────────────────────────────────────────
-  # NGINX Ingress → INFRA node
-  # ─────────────────────────────────────────────
+  # NGINX Ingress
   enable_ingress_nginx = true
   ingress_nginx = {
     values = [yamlencode({
@@ -58,21 +57,19 @@ module "eks_addons" {
         service = {
           type = "LoadBalancer"
           annotations = {
-            "service.beta.kubernetes.io/aws-load-balancer-type"                      = "external"
-            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"           = "ip"
-            "service.beta.kubernetes.io/aws-load-balancer-scheme"                    = "internet-facing"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol"      = "HTTP"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"          = "80"
-            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"          = "/healthz"
+            "service.beta.kubernetes.io/aws-load-balancer-type"                 = "external"
+            "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"      = "ip"
+            "service.beta.kubernetes.io/aws-load-balancer-scheme"               = "internet-facing"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol" = "HTTP"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-port"     = "80"
+            "service.beta.kubernetes.io/aws-load-balancer-healthcheck-path"     = "/healthz"
           }
         }
       }
     })]
   }
 
-  # ─────────────────────────────────────────────
-  # Metrics Server → SYSTEM node
-  # ─────────────────────────────────────────────
+  # Metrics Server
   enable_metrics_server = true
   metrics_server = {
     values = [yamlencode({
@@ -81,15 +78,13 @@ module "eks_addons" {
     })]
   }
 
-  # ─────────────────────────────────────────────
-  # External Secrets → INFRA node
-  # ─────────────────────────────────────────────
+  # External Secrets
   enable_external_secrets = true
   external_secrets = {
     values = [yamlencode({
       tolerations    = local.infra_scheduling.tolerations
       nodeSelector   = local.infra_scheduling.nodeSelector
-      webhook        = {
+      webhook = {
         tolerations  = local.infra_scheduling.tolerations
         nodeSelector = local.infra_scheduling.nodeSelector
       }
