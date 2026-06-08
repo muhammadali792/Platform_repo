@@ -8,7 +8,7 @@ locals {
     },
     "argocd-image-updater" = {
       namespace       = "argocd"
-      service_account = "argocd-image-updater"
+      service_account = "argocd-image-updater-sa"
       policy_arn      = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
     }
   }
