@@ -12,6 +12,7 @@ locals {
 # ─────────────────────────────────────────────
 
 resource "random_password" "db_pass" {
+  for_each         = { for k, v in local.services : k => v if v.rds }
   length           = 16
   special          = true
   override_special = "!#$%^&*()_+-=[]{}|"
@@ -116,7 +117,7 @@ resource "aws_secretsmanager_secret_version" "secrets_val" {
 
   secret_string = jsonencode(merge(
     local.services[each.key].needs_jwt ? { JWT_SECRET   = random_password.jwt_secret.result } : {},
-    local.services[each.key].rds       ? { DATABASE_URL = "postgresql://postgres:${random_password.db_pass.result}@${aws_db_instance.main_db.address}:5432/${each.key}_db" } : {},
+    each.value.rds ? { DATABASE_URL = "postgresql://${each.key}_user:${random_password.db_pass[each.key].result}@${aws_db_instance.main_db.address}:5432/${each.key}_db" } : {},
     local.services[each.key].redis     ? { REDIS_URL    = "redis://:${random_password.redis_pass.result}@${aws_elasticache_cluster.main_redis.cache_nodes[0].address}:6379" } : {}
   ))
 }
@@ -131,6 +132,13 @@ resource "null_resource" "init_db" {
 
   provisioner "local-exec" {
     command = "psql -h ${aws_db_instance.main_db.address} -U postgres -d postgres -c 'CREATE DATABASE ${each.key}_db;' || true"
+  provisioner "local-exec" {
+    command = <<-EOT
+      psql -h ${aws_db_instance.main_db.address} -U postgres -d postgres \
+        -c 'CREATE DATABASE ${each.key}_db;' \
+        -c 'CREATE USER ${each.key}_user WITH PASSWORD ''${random_password.db_pass[each.key].result}'';' \
+        -c 'GRANT ALL PRIVILEGES ON DATABASE ${each.key}_db TO ${each.key}_user;' || true
+    EOT
 
     environment = {
       PGPASSWORD = random_password.db_pass.result
