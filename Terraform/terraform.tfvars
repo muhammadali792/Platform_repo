@@ -12,13 +12,13 @@ eks_addons_security_config = {
     service_account = "external-secrets"
     policy_arn      = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
   }
-
+  */
   aws-ebs-csi-driver = {
     namespace       = "kube-system"
     service_account = "ebs-csi-controller-sa"
     policy_arn      = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   }
-  */
+  
 
   argocd-image-updater = {
     namespace       = "argocd"
