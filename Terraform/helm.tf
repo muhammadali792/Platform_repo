@@ -87,29 +87,3 @@ resource "helm_release" "argocd_image_updater" {
     aws_eks_pod_identity_association.addon_associations,
   ]
 }
-/*
-resource "helm_release" "ebs_csi_driver" {
-  name             = "aws-ebs-csi-driver"
-  repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
-  chart            = "aws-ebs-csi-driver"
-  namespace        = "kube-system"
-  create_namespace = false
-
-  values = [yamlencode({
-    controller = {
-      serviceAccount = {
-        create = true
-        name   = "ebs-csi-controller-sa"
-      }
-      nodeSelector = local.system_scheduling.nodeSelector
-      tolerations  = local.system_scheduling.tolerations
-    }
-    node = {
-      nodeSelector = local.system_scheduling.nodeSelector
-      tolerations  = local.system_scheduling.tolerations
-    }
-  })]
-
-  depends_on = [module.eks]
-}
-*/
