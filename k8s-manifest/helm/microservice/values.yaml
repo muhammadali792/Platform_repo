@@ -1,0 +1,61 @@
+replicaCount: 1
+
+image:
+  name: ""
+
+service:
+  port: 3000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+deployment:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+migration:
+  enabled: false
+  command: []
+
+ingress:
+  enabled: false
+  host: ""
+  port: 80
+  tls:
+    enabled: false
+  mtls:
+    enabled: false
+    secretName: ""
+
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  cpuUtilization: 70
+
+networkPolicy:
+  enabled: false
+  allowFrom: []
+  allowTo: []
+
+rollout:
+  enabled: false
+  canary:
+    autoRollback: false
+    steps: []
+
+env:
+  jwt:
+    enabled: false
+  db:
+    enabled: false
+  redis:
+    enabled: false
