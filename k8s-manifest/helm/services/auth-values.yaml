@@ -24,7 +24,7 @@ ingress:
   tls:
     enabled: true
   mtls:
-    enabled: true
+    enabled: false
     secretName: auth-mtls-secret
 
 hpa:
