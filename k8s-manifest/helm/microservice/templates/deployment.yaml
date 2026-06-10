@@ -25,7 +25,7 @@ spec:
       {{- if .Values.migration.enabled }}
       initContainers:
       - name: db-migrate
-        image: "{{ .Values.image.name }}"
+        image: "{{ .Values.image.registry }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
         command: {{ toYaml .Values.migration.command | nindent 10 }}
         env:
         - name: DATABASE_URL
