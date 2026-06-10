@@ -9,7 +9,7 @@ spec:
   source:
     repoURL: https://github.com/muhammadali792/Platform_repo
     targetRevision: main
-    path: argocd/applications
+    path: k8s-manifest/argocd/applications
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
