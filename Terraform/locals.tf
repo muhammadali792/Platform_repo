@@ -66,7 +66,7 @@ locals {
         cm = {
           "oidc.config" = yamlencode({
             name         = "AWS SSO"
-            issuer       = "https://identitycenter.amazonaws.com/ssooidc/${tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]}"
+            issuer       = "https://identitycenter.amazonaws.com/ssooidc/ssoins-6508eaccb88fe0b6"
             clientID     = aws_ssoadmin_application.argocd.application_arn
             clientSecret = "$oidc.clientSecret"
             requestedScopes = ["openid", "profile", "email"]
@@ -167,9 +167,9 @@ locals {
             client_id           = aws_ssoadmin_application.grafana.application_arn
             client_secret       = "$__secretsmanager:grafana/oidc-secret:oidc_client_secret"
             scopes              = "openid profile email"
-            auth_url            = "https://identitycenter.amazonaws.com/ssooidc/${tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]}/authorize"
-            token_url           = "https://identitycenter.amazonaws.com/ssooidc/${tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]}/token"
-            api_url             = "https://identitycenter.amazonaws.com/ssooidc/${tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]}/userinfo"
+            auth_url  = "https://oidc.eu-north-1.amazonaws.com/authorize"
+            token_url = "https://oidc.eu-north-1.amazonaws.com/token"
+            api_url   = "https://oidc.eu-north-1.amazonaws.com/userinfo"
             allow_sign_up       = true
             role_attribute_path = "contains(groups[*], 'DevOps') && 'Admin' || 'Viewer'"
           }
