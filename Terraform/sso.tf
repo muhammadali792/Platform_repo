@@ -52,7 +52,7 @@ resource "aws_secretsmanager_secret" "argocd_oidc" {
 resource "aws_secretsmanager_secret_version" "argocd_oidc" {
   secret_id     = aws_secretsmanager_secret.argocd_oidc.id
   secret_string = jsonencode({
-    oidc_client_secret = aws_ssoadmin_application.argocd.application_id
+    oidc_client_secret = aws_ssoadmin_application.argocd.application_arn
   })
 }
 
@@ -67,7 +67,7 @@ resource "aws_secretsmanager_secret" "grafana_oidc" {
 resource "aws_secretsmanager_secret_version" "grafana_oidc" {
   secret_id     = aws_secretsmanager_secret.grafana_oidc.id
   secret_string = jsonencode({
-    oidc_client_secret = aws_ssoadmin_application.grafana.application_id
+    oidc_client_secret = aws_ssoadmin_application.grafana.application_arn
   })
 }
 
@@ -87,7 +87,7 @@ resource "helm_release" "argocd_sso" {
         "oidc.config" = yamlencode({
           name         = "AWS SSO"
           issuer       = "https://identitycenter.amazonaws.com/ssooidc/${tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]}"
-          clientID     = aws_ssoadmin_application.argocd.application_id
+          clientID     = aws_ssoadmin_application.argocd.application_arn
           clientSecret = "$oidc.clientSecret"
           requestedScopes = ["openid", "profile", "email"]
           requestedIDTokenClaims = {
@@ -124,7 +124,7 @@ resource "helm_release" "grafana_sso" {
         auth_generic_oauth = {
           enabled             = true
           name                = "AWS SSO"
-          client_id           = aws_ssoadmin_application.grafana.application_id
+          client_id           = aws_ssoadmin_application.grafana.application_arn
           client_secret       = "$__secretsmanager:grafana/oidc-secret:oidc_client_secret"
           scopes              = "openid profile email"
           auth_url            = "https://identitycenter.amazonaws.com/ssooidc/${tolist(data.aws_ssoadmin_instances.main.identity_store_ids)[0]}/authorize"
