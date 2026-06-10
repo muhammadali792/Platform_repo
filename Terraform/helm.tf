@@ -96,6 +96,7 @@ resource "helm_release" "argocd_image_updater" {
       registries = [{
         name       = "ECR"
         api_url    = "https://${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
+        prefix      = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
         credsexpire = 0
       }]
     }
