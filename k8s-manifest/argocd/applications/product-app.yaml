@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/muhammadali792/Platform_repo
     targetRevision: main
-    path: k8s-manifest/helm/microservicee
+    path: k8s-manifest/helm/microservice
     helm:
       valueFiles:
       - ../services/product-values.yaml
