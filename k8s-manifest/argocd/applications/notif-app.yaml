@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: notif-service
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: >
+      notif=351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-service
+    argocd-image-updater.argoproj.io/notif.update-strategy: latest
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+    argocd-image-updater.argoproj.io/notif.helm.image-name: image.name
+    argocd-image-updater.argoproj.io/notif.helm.image-tag: image.tag
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/k8s-configs-repo
+    targetRevision: main
+    path: helm/microservice
+    helm:
+      valueFiles:
+      - ../services/notif-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: notif
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
