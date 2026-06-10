@@ -12,7 +12,7 @@ migration:
 ingress:
   enabled: true
   host: product.cloudaura.online
-  port: 3003
+  port: 8001
   tls:
     enabled: true
   mtls:
@@ -21,16 +21,14 @@ ingress:
 hpa:
   enabled: true
   minReplicas: 2
-  maxReplicas: 8
+  maxReplicas: 3
   cpuUtilization: 70
 
 networkPolicy:
   enabled: true
   allowFrom:
     - order-service
-  allowTo:
-    - postgres
-    - redis
+  allowTo: []
 
 rollout:
   enabled: false
