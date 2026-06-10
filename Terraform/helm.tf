@@ -67,7 +67,7 @@ resource "kubectl_manifest" "cluster_issuer" {
     spec:
       acme:
         server: https://acme-v02.api.letsencrypt.org/directory
-        email: your@email.com
+        email: m.ali.hassan.devops@gmail.com
         privateKeySecretRef:
           name: letsencrypt-prod
         solvers:
