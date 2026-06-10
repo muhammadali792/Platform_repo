@@ -1,0 +1,44 @@
+replicaCount: 2
+image:
+  name: product-service
+
+service:
+  port: 8001
+
+migration:
+  enabled: true
+  command: ["npm", "run", "migrate"]
+
+ingress:
+  enabled: true
+  host: product.cloudaura.online
+  port: 3003
+  tls:
+    enabled: true
+  mtls:
+    enabled: false
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  cpuUtilization: 70
+
+networkPolicy:
+  enabled: true
+  allowFrom:
+    - order-service
+  allowTo:
+    - postgres
+    - redis
+
+rollout:
+  enabled: false
+
+env:
+  jwt:
+    enabled: false
+  db:
+    enabled: true
+  redis:
+    enabled: true
