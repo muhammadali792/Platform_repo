@@ -1,0 +1,73 @@
+{{- if not .Values.rollout.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  strategy:
+    type: {{ .Values.deployment.strategy.type }}
+    {{- if eq .Values.deployment.strategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      {{- if .Values.migration.enabled }}
+      initContainers:
+      - name: db-migrate
+        image: "{{ .Values.image.name }}"
+        command: {{ toYaml .Values.migration.command | nindent 10 }}
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: DATABASE_URL
+      {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.image.name }}"
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+        {{- if or .Values.env.jwt.enabled .Values.env.db.enabled .Values.env.redis.enabled }}
+        env:
+        {{- if .Values.env.jwt.enabled }}
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: JWT_SECRET
+        {{- end }}
+        {{- if .Values.env.db.enabled }}
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: DATABASE_URL
+        {{- end }}
+        {{- if .Values.env.redis.enabled }}
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: REDIS_URL
+        {{- end }}
+        {{- end }}
+{{- end }}
