@@ -1,0 +1,78 @@
+{{- if .Values.rollout.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      {{- if .Values.migration.enabled }}
+      initContainers:
+      - name: db-migrate
+        image: "{{ .Values.image.name }}"
+        command: {{ toYaml .Values.migration.command | nindent 10 }}
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: DATABASE_URL
+      {{- end }}
+      containers:
+      - name: {{ .Release.Name }}
+        image: "{{ .Values.image.name }}"
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+        {{- if or .Values.env.jwt.enabled .Values.env.db.enabled .Values.env.redis.enabled }}
+        env:
+        {{- if .Values.env.jwt.enabled }}
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: JWT_SECRET
+        {{- end }}
+        {{- if .Values.env.db.enabled }}
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: DATABASE_URL
+        {{- end }}
+        {{- if .Values.env.redis.enabled }}
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secrets
+              key: REDIS_URL
+        {{- end }}
+        {{- end }}
+  strategy:
+    canary:
+      {{- if .Values.rollout.canary.autoRollback }}
+      analysis:
+        templates:
+        - templateName: success-rate
+        startingStep: 1
+      {{- end }}
+      steps:
+      {{- range .Values.rollout.canary.steps }}
+      - {{ toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
