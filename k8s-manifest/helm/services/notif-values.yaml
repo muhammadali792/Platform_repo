@@ -18,8 +18,7 @@ networkPolicy:
   enabled: true
   allowFrom:
     - order-service
-  allowTo:
-    - redis
+  allowTo: []
 
 rollout:
   enabled: false
