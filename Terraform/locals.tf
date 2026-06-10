@@ -153,8 +153,8 @@ locals {
             "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
           }
         }
-        grafana.ini = {
-          auth_generic_oauth = {
+       "grafana.ini" = {
+         "auth.generic_oauth" = {
             enabled             = true
             name                = "AWS SSO"
             client_id           = aws_ssoadmin_application.grafana.application_arn
