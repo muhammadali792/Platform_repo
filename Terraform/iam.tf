@@ -46,3 +46,6 @@ resource "aws_eks_pod_identity_association" "addon_associations" {
   role_arn        = aws_iam_role.addon_roles[each.key].arn
   depends_on      = [module.eks]
 }
+resource "aws_iam_service_linked_role" "spot" {
+  aws_service_name = "spot.amazonaws.com"
+}
