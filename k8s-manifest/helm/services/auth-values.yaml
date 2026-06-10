@@ -20,7 +20,7 @@ migration:
 ingress:
   enabled: true
   host: auth.cloudaura.online
-  port: 3001
+  port: 8000
   tls:
     enabled: true
   mtls:
@@ -37,8 +37,7 @@ networkPolicy:
   enabled: true
   allowFrom:
     - order-service
-  allowTo:
-    - postgres
+  allowTo: []
 
 rollout:
   enabled: true
