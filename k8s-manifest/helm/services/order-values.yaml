@@ -1,0 +1,52 @@
+replicaCount: 2
+image:
+  name: order-service
+
+service:
+  port: 3002
+
+migration:
+  enabled: true
+  command: ["npm", "run", "migrate"]
+
+ingress:
+  enabled: true
+  host: order.cloudaura.online
+  port: 3002
+  tls:
+    enabled: true
+  mtls:
+    enabled: true
+    secretName: order-mtls-secret
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  cpuUtilization: 65
+
+networkPolicy:
+  enabled: true
+  allowFrom:
+    - product-service
+  allowTo:
+    - postgres
+    - redis
+
+rollout:
+  enabled: true
+  canary:
+    autoRollback: true
+    steps:
+    - setWeight: 10
+    - pause:
+        duration: 60s
+    - setWeight: 100
+
+env:
+  jwt:
+    enabled: true
+  db:
+    enabled: true
+  redis:
+    enabled: true
