@@ -3,7 +3,7 @@ image:
   name: order-service
 
 service:
-  port: 3002
+  port: 8002
 
 migration:
   enabled: true
