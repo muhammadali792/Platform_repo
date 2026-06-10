@@ -4,8 +4,7 @@ metadata:
   name: notif-service
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: >
-      notif=351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-service
+    argocd-image-updater.argoproj.io/image-list: notif=notif-repo
     argocd-image-updater.argoproj.io/notif.update-strategy: latest
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
@@ -14,7 +13,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/myorg/k8s-configs-repo
+    repoURL: https://github.com/Platform_repo/k8s-manifest
     targetRevision: main
     path: helm/microservice
     helm:
