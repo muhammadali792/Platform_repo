@@ -50,6 +50,17 @@ locals {
          metrics = {
           enabled = true
         }
+        ingress = {
+          enabled          = true
+          ingressClassName = "nginx"
+          hostname         = "argocd.cloudaura.online"
+          tls              = true
+          annotations = {
+            "cert-manager.io/cluster-issuer"               = "letsencrypt-prod"
+            "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
+            "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
+          }
+        }
       }
       controller = {
         nodeSelector = local.infra_scheduling.nodeSelector
@@ -113,6 +124,19 @@ locals {
       grafana = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
+        ingress = {
+          enabled          = true
+          ingressClassName = "nginx"
+          hosts            = ["grafana.cloudaura.online"]
+          tls = [{
+            secretName = "grafana-tls"
+            hosts      = ["grafana.cloudaura.online"]
+          }]
+          annotations = {
+            "cert-manager.io/cluster-issuer" = "letsencrypt-prod"
+            "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
+          }
+        }
       }
       kube-state-metrics = {
         enabled = true
