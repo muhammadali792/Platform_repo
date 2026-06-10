@@ -107,3 +107,28 @@ resource "helm_release" "argocd_image_updater" {
     aws_eks_pod_identity_association.addon_associations,
   ]
 }
+resource "helm_release" "istio_base" {
+  name             = "istio-base"
+  repository       = "https://istio-release.storage.googleapis.com/charts"
+  chart            = "base"
+  namespace        = "istio-system"
+  create_namespace = true
+  depends_on       = [module.eks_addons]
+}
+
+resource "helm_release" "istiod" {
+  name       = "istiod"
+  repository = "https://istio-release.storage.googleapis.com/charts"
+  chart      = "istiod"
+  namespace  = "istio-system"
+  values = [yamlencode({
+    meshConfig = {
+      defaultConfig = {
+        holdApplicationUntilProxyStarts = true
+      }
+    }
+    tolerations  = local.infra_scheduling.tolerations
+    nodeSelector = local.infra_scheduling.nodeSelector
+  })]
+  depends_on = [helm_release.istio_base]
+}
