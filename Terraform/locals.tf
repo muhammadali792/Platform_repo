@@ -47,14 +47,24 @@ locals {
       server = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
+         metrics = {
+          enabled = true
+        }
       }
       controller = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
+        metrics = {
+          enabled = true
+        }
       }
+
       repoServer = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
+         metrics = {
+          enabled = true
+        }
       }
       applicationSet = {
         nodeSelector = local.infra_scheduling.nodeSelector
