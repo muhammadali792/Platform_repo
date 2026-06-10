@@ -1,8 +1,6 @@
 replicaCount: 2
 image:
-  registry: ""
-  name: ""
-  tag: ""
+  name: order-repo
 
 service:
   port: 8002
