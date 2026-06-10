@@ -58,6 +58,26 @@ resource "helm_release" "cert_manager" {
 
   depends_on = [module.eks, module.eks_addons]
 }
+resource "kubectl_manifest" "cluster_issuer" {
+  yaml_body = <<-YAML
+    apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt-prod
+    spec:
+      acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: your@email.com
+        privateKeySecretRef:
+          name: letsencrypt-prod
+        solvers:
+        - http01:
+            ingress:
+              class: nginx
+  YAML
+
+  depends_on = [helm_release.cert_manager]
+}
 
 resource "helm_release" "argocd_image_updater" {
   name             = "argocd-image-updater"
