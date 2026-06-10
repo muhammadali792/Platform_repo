@@ -1,0 +1,62 @@
+replicaCount: 2
+image:
+  name: auth-service
+
+service:
+  port: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+migration:
+  enabled: true
+  command: ["npm", "run", "migrate"]
+
+ingress:
+  enabled: true
+  host: auth.cloudaura.online
+  port: 3001
+  tls:
+    enabled: true
+  mtls:
+    enabled: true
+    secretName: auth-mtls-secret
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  cpuUtilization: 70
+
+networkPolicy:
+  enabled: true
+  allowFrom:
+    - order-service
+  allowTo:
+    - postgres
+
+rollout:
+  enabled: true
+  canary:
+    autoRollback: true
+    steps:
+    - setWeight: 10
+    - pause:
+        duration: 60s
+    - setWeight: 50
+    - pause:
+        duration: 60s
+    - setWeight: 100
+
+env:
+  jwt:
+    enabled: true
+  db:
+    enabled: true
+  redis:
+    enabled: false
