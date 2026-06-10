@@ -72,6 +72,7 @@ locals {
               groups = { essential = true }
             }
           })
+          "url" = "https://argocd.cloudaura.online"
         }
         rbacConfig = {
           "policy.default" = "role:readonly"
@@ -152,7 +153,7 @@ locals {
             "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
           }
         }
-        grafana_ini = {
+        grafana.ini = {
           auth_generic_oauth = {
             enabled             = true
             name                = "AWS SSO"
