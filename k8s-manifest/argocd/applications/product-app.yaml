@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: product-service
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: >
+      product=351849325312.dkr.ecr.eu-north-1.amazonaws.com/product-service
+    argocd-image-updater.argoproj.io/product.update-strategy: latest
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+    argocd-image-updater.argoproj.io/product.helm.image-name: image.name
+    argocd-image-updater.argoproj.io/product.helm.image-tag: image.tag
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/myorg/k8s-configs-repo
+    targetRevision: main
+    path: helm/microservice
+    helm:
+      valueFiles:
+      - ../services/product-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: product
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
