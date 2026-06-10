@@ -28,6 +28,5 @@ resource "aws_route53_record" "wildcard" {
 }
 
 data "aws_elb_hosted_zone_id" "nlb" {
-  load_balancer_type = "network"
   region             = var.aws_region
 }
