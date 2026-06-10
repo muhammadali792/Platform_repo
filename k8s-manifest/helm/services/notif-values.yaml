@@ -1,0 +1,33 @@
+replicaCount: 1
+image:
+  name: notif-service
+
+service:
+  port: 3000
+
+migration:
+  enabled: false
+
+ingress:
+  enabled: false
+
+hpa:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  allowFrom:
+    - order-service
+  allowTo:
+    - redis
+
+rollout:
+  enabled: false
+
+env:
+  jwt:
+    enabled: false
+  db:
+    enabled: false
+  redis:
+    enabled: true
