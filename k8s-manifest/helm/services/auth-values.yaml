@@ -1,8 +1,6 @@
 replicaCount: 2
 image:
-  registry: ""
-  name: ""
-  tag: ""
+  name: auth-repo
 
 service:
   port: 8000
