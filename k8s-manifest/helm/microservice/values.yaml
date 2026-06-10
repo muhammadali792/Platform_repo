@@ -2,6 +2,8 @@ replicaCount: 1
 
 image:
   name: ""
+  registry: ""
+  tag: ""
 
 service:
   port: 3000
