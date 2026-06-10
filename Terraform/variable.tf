@@ -32,6 +32,6 @@ variable "vpc_cidr" {
 
 variable "domain_name" {
 type = string
-default = "cloudaura.com"
+default = "cloudaura.online"
 }
 
