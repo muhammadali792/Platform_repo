@@ -12,7 +12,7 @@ migration:
 ingress:
   enabled: true
   host: order.cloudaura.online
-  port: 3002
+  port: 8002
   tls:
     enabled: true
   mtls:
@@ -29,9 +29,7 @@ networkPolicy:
   enabled: true
   allowFrom:
     - product-service
-  allowTo:
-    - postgres
-    - redis
+  allowTo: []
 
 rollout:
   enabled: true
