@@ -4,9 +4,6 @@ locals {
     ManagedBy   = "Terraform"
   }
 
-  # ─────────────────────────────────────────────
-  # Scheduling: SYSTEM nodes
-  # ─────────────────────────────────────────────
   system_scheduling = {
     nodeSelector = { role = "system" }
     tolerations = [{
@@ -17,9 +14,6 @@ locals {
     }]
   }
 
-  # ─────────────────────────────────────────────
-  # Scheduling: INFRA nodes
-  # ─────────────────────────────────────────────
   infra_scheduling = {
     nodeSelector = { role = "infra" }
     tolerations = [{
@@ -30,9 +24,6 @@ locals {
     }]
   }
 
-  # ─────────────────────────────────────────────
-  # Helm values per tool
-  # ─────────────────────────────────────────────
   app_values = {
     argocd = {
       global = {
@@ -60,25 +51,6 @@ locals {
             "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
             "nginx.ingress.kubernetes.io/ssl-redirect"     = "true"
           }
-        }
-      }
-      configs = {
-        cm = {
-          "oidc.config" = yamlencode({
-            name         = "AWS SSO"
-            issuer       = "https://identitycenter.amazonaws.com/ssooidc/ssoins-6508eaccb88fe0b6"
-            clientID     = aws_ssoadmin_application.argocd.application_arn
-            clientSecret = "$oidc.clientSecret"
-            requestedScopes = ["openid", "profile", "email"]
-            requestedIDTokenClaims = {
-              groups = { essential = true }
-            }
-          })
-          "url" = "https://argocd.cloudaura.online"
-        }
-        rbac = {
-          "policy.default" = "role:readonly"
-          "policy.csv"     = "g, DevOps, role:admin\ng, Developers, role:readonly"
         }
       }
       controller = {
@@ -154,24 +126,6 @@ locals {
           annotations = {
             "cert-manager.io/cluster-issuer"           = "letsencrypt-prod"
             "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
-          }
-        }
-        "grafana.ini" = {
-          server = {
-            domain   = "grafana.cloudaura.online"
-            root_url = "https://grafana.cloudaura.online"
-          }
-          "auth.generic_oauth" = {
-            enabled             = true
-            name                = "AWS SSO"
-            client_id           = aws_ssoadmin_application.grafana.application_arn
-            client_secret       = "$__secretsmanager:grafana/oidc-secret:oidc_client_secret"
-            scopes              = "openid profile email"
-            auth_url  = "https://oidc.eu-north-1.amazonaws.com/authorize"
-            token_url = "https://oidc.eu-north-1.amazonaws.com/token"
-            api_url   = "https://oidc.eu-north-1.amazonaws.com/userinfo"
-            allow_sign_up       = true
-            role_attribute_path = "contains(groups[*], 'DevOps') && 'Admin' || 'Viewer'"
           }
         }
       }
