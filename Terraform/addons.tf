@@ -41,6 +41,10 @@ module "eks_addons" {
     values = [yamlencode({
       controller = {
         replicaCount = 2
+        config = {
+         "force-ssl-redirect"    = "true"
+         "use-forwarded-headers" = "true"
+        }
         tolerations  = local.infra_scheduling.tolerations
         nodeSelector = local.infra_scheduling.nodeSelector
         admissionWebhooks = {
