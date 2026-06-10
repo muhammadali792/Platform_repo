@@ -1,6 +1,8 @@
 replicaCount: 1
 image:
-  name: notif-service
+  registry: ""
+  name: ""
+  tag: ""
 service:
   port: 3000
 migration:
