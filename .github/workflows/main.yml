@@ -47,11 +47,32 @@ jobs:
         run: |
           # 1. Force Unlock (agar purana lock phans gaya ho)
           terraform force-unlock -force || echo "No lock to remove"
-           # 2. Import existing resources
-          terraform import 'aws_secretsmanager_secret.service_secrets["product"]' product-service/secrets || echo "Already in state"
+          # ECR Repositories
+          terraform import 'aws_ecr_repository.service_repos["auth"]' auth-repo || echo "Already in state"
+          terraform import 'aws_ecr_repository.service_repos["order"]' order-repo || echo "Already in state"
+          terraform import 'aws_ecr_repository.service_repos["product"]' product-repo || echo "Already in state"
+          terraform import 'aws_ecr_repository.service_repos["notif"]' notif-repo || echo "Already in state"
           
-          terraform import aws_elasticache_subnet_group.main main-redis-subnet-group || echo "Already in state"
+          # IAM Roles
+          terraform import 'aws_iam_role.addon_roles["ebs-csi"]' cloudaura-eks-cluster-ebs-csi-role || echo "Already in state"
+          terraform import 'aws_iam_role.addon_roles["argocd-image-updater"]' cloudaura-eks-cluster-argocd-image-updater-role || echo "Already in state"
+          
+          # Spot Service Linked Role
+          terraform import aws_iam_service_linked_role.spot arn:aws:iam::351849325312:role/aws-service-role/spot.amazonaws.com/AWSServiceRoleForEC2Spot || echo "Already in state"
+          
+          # Secrets Manager
+          terraform import 'aws_secretsmanager_secret.service_secrets["auth"]' auth-service/secrets || echo "Already in state"
+          terraform import 'aws_secretsmanager_secret.service_secrets["order"]' order-service/secrets || echo "Already in state"
+          terraform import 'aws_secretsmanager_secret.service_secrets["product"]' product-service/secrets || echo "Already in state"
+          terraform import 'aws_secretsmanager_secret.service_secrets["notif"]' notif-service/secrets || echo "Already in state"
+          
+          # RDS aur ElastiCache Subnet Groups
           terraform import aws_db_subnet_group.main main-db-subnet-group || echo "Already in state"
+          terraform import aws_elasticache_subnet_group.main main-redis-subnet-group || echo "Already in state"
+          
+          # KMS
+          terraform import 'module.eks.module.kms.aws_kms_alias.this["cluster"]' alias/eks/cloudaura-eks-cluster || echo "Already in state"
+          terraform import module.eks.module.kms.aws_kms_key.this arn:aws:kms:eu-north-1:351849325312:key/6eb45a62-39c4-4a23-8a87-cc7df659ee43 || echo "Already in state"
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
