@@ -47,6 +47,11 @@ jobs:
         run: |
           # 1. Force Unlock (agar purana lock phans gaya ho)
           terraform force-unlock -force || echo "No lock to remove"
+           # 2. Import existing resources
+          terraform import 'aws_secretsmanager_secret.service_secrets["product"]' product-service/secrets || echo "Already in state"
+          
+          terraform import aws_elasticache_subnet_group.main main-redis-subnet-group || echo "Already in state"
+          terraform import aws_db_subnet_group.main main-db-subnet-group || echo "Already in state"
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
