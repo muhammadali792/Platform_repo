@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   name: product-repo
-  registry: 351849325312.dkr.ecr.eu-north-1.amazonaws.com
+  registry: "351849325312.dkr.ecr.eu-north-1.amazonaws.com"
   tag: latest
 service:
   port: 8001
