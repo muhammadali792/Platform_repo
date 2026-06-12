@@ -17,6 +17,9 @@ data "aws_lb" "nginx" {
 resource "aws_route53_zone" "main" {
   name = var.domain_name
   tags = local.common_tags
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_route53_record" "main" {
