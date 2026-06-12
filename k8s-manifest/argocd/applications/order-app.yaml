@@ -4,8 +4,8 @@ metadata:
   name: order-service
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: order=order-repo
-    argocd-image-updater.argoproj.io/order.update-strategy: latest
+    argocd-image-updater.argoproj.io/image-list: order=351849325312.dkr.ecr.eu-north-1.amazonaws.com/order-repo
+    argocd-image-updater.argoproj.io/order.update-strategy: digest
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
     argocd-image-updater.argoproj.io/order.helm.image-name: image.name
