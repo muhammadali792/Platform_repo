@@ -3,13 +3,6 @@ kind: Application
 metadata:
   name: notif-service
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: notif=351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-repo
-    argocd-image-updater.argoproj.io/notif.update-strategy: digest
-    argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/git-branch: main
-    argocd-image-updater.argoproj.io/notif.helm.image-name: image.name
-    argocd-image-updater.argoproj.io/notif.helm.image-tag: image.tag
 spec:
   project: default
   source:
