@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
-  name: notif-repo
   registry: "351849325312.dkr.ecr.eu-north-1.amazonaws.com"
+  name: notif-repo
   tag: latest
 service:
   port: 3000
