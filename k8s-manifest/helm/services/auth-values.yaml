@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
-  name: auth-repo
   registry: "351849325312.dkr.ecr.eu-north-1.amazonaws.com"
+  name: auth-repo
   tag: "60545987853ef158132f73c0e8576cf1b047f66c"
 
 service:
