@@ -16,49 +16,46 @@ spec:
         writeBackTarget: "helmvalues:../services/auth-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/auth-repo"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/auth-repo:*"
       commonUpdateSettings:
         updateStrategy: "digest"
       manifestTargets:
         helm:
           name: image.repository
           tag: image.tag
-
   - namePattern: "order-service"
     writeBackConfig:
       gitConfig:
         writeBackTarget: "helmvalues:../services/order-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/order-repo"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/order-repo:*"
       commonUpdateSettings:
         updateStrategy: "digest"
       manifestTargets:
         helm:
           name: image.repository
           tag: image.tag
-
   - namePattern: "product-service"
     writeBackConfig:
       gitConfig:
         writeBackTarget: "helmvalues:../services/product-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/product-repo"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/product-repo:*"
       commonUpdateSettings:
         updateStrategy: "digest"
       manifestTargets:
         helm:
           name: image.repository
           tag: image.tag
-
   - namePattern: "notif-service"
     writeBackConfig:
       gitConfig:
         writeBackTarget: "helmvalues:../services/notif-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-repo"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-repo:*"
       commonUpdateSettings:
         updateStrategy: "digest"
       manifestTargets:
