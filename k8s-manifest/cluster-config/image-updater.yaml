@@ -16,9 +16,10 @@ spec:
         writeBackTarget: "helmvalues:../services/auth-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/auth-repo:*"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/auth-repo"
       commonUpdateSettings:
-        updateStrategy: "digest"
+        updateStrategy: "semver"
+        allowTags: "regexp:^v\\d+\\.\\d+\\.\\d+$"
       manifestTargets:
         helm:
           name: image.repository
@@ -29,9 +30,10 @@ spec:
         writeBackTarget: "helmvalues:../services/order-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/order-repo:*"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/order-repo"
       commonUpdateSettings:
-        updateStrategy: "digest"
+        updateStrategy: "semver"
+        allowTags: "regexp:^v\\d+\\.\\d+\\.\\d+$"
       manifestTargets:
         helm:
           name: image.repository
@@ -42,9 +44,10 @@ spec:
         writeBackTarget: "helmvalues:../services/product-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/product-repo:*"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/product-repo"
       commonUpdateSettings:
-        updateStrategy: "digest"
+        updateStrategy: "semver"
+        allowTags: "regexp:^v\\d+\\.\\d+\\.\\d+$"
       manifestTargets:
         helm:
           name: image.repository
@@ -55,9 +58,10 @@ spec:
         writeBackTarget: "helmvalues:../services/notif-values.yaml"
     images:
     - alias: "app"
-      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-repo:*"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-repo"
       commonUpdateSettings:
-        updateStrategy: "digest"
+        updateStrategy: "semver"
+        allowTags: "regexp:^v\\d+\\.\\d+\\.\\d+$"
       manifestTargets:
         helm:
           name: image.repository
