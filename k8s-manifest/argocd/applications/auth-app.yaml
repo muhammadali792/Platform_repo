@@ -4,8 +4,8 @@ metadata:
   name: auth-service
   namespace: argocd
   annotations:
-    argocd-image-updater.argoproj.io/image-list: auth=auth-repo
-    argocd-image-updater.argoproj.io/auth.update-strategy: latest
+    argocd-image-updater.argoproj.io/image-list: auth=351849325312.dkr.ecr.eu-north-1.amazonaws.com/auth-repo
+    argocd-image-updater.argoproj.io/auth.update-strategy: digest
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
     argocd-image-updater.argoproj.io/auth.helm.image-name: image.name
