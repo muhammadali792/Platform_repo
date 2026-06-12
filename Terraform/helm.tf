@@ -97,13 +97,26 @@ resource "helm_release" "argocd_image_updater" {
         name       = "ECR"
         api_url    = "https://${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
         prefix      = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
-        credentials = "ext:/usr/bin/aws ecr get-login-password --region ${var.aws_region}"
+        credentials = "ext:/scripts/ecr-login.sh"
         credsexpire = "12h"
+        ping        = true
+        default     = true
       }]
       gitCredentials = [{
         url        = "https://github.com/muhammadali792"
         secretName = "argocd-image-updater-git-creds"
       }]
+    }
+
+    # Industry Standard: Auth script via Helm values
+    authScripts = {
+      enabled = true
+      scripts = {
+        "ecr-login.sh" = <<-EOF
+        #!/bin/sh
+        aws ecr --region ${var.aws_region} get-login-password --output text
+        EOF
+      }
     }
   })]
 
