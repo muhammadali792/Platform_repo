@@ -1,0 +1,24 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: microservices-updater
+  namespace: argocd
+spec:
+  writeBackConfig:
+    method: "git"
+    gitConfig:
+      repository: "git@github.com:muhammadali792/Platform_repo.git"
+      branch: "main"
+      writeBackTarget: "helmvalues:../services/{{.AppName}}-values.yaml"
+
+  applicationRefs:
+  - namePattern: "*-service"
+    images:
+    - alias: "app"
+      imageName: "351849325312.dkr.ecr.eu-north-1.amazonaws.com/{{.AppName}}-repo"
+      commonUpdateSettings:
+        updateStrategy: "digest"
+      manifestTargets:
+        helm:
+          name: image.repository
+          tag: image.tag
