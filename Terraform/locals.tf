@@ -40,6 +40,13 @@ locals {
         tolerations  = local.infra_scheduling.tolerations
         metrics = {
           enabled = true
+          serviceMonitor = {
+            enabled          = true
+            namespace        = "kube-prometheus-stack"
+            additionalLabels = {
+              release = "kube-prometheus-stack"
+            }
+          }
         }
         ingress = {
           enabled          = true
@@ -58,13 +65,28 @@ locals {
         tolerations  = local.infra_scheduling.tolerations
         metrics = {
           enabled = true
+          serviceMonitor = {
+            enabled          = true
+            namespace        = "kube-prometheus-stack"
+            additionalLabels = {
+              release = "kube-prometheus-stack"
+            }
+          }
         }
       }
+  
       repoServer = {
         nodeSelector = local.infra_scheduling.nodeSelector
         tolerations  = local.infra_scheduling.tolerations
         metrics = {
           enabled = true
+          serviceMonitor = {
+            enabled          = true
+            namespace        = "kube-prometheus-stack"
+            additionalLabels = {
+              release = "kube-prometheus-stack"
+            }
+          }
         }
       }
       applicationSet = {
