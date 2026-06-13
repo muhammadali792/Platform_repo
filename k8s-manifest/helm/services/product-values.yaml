@@ -7,8 +7,8 @@ service:
   port: 8001
 
 migration:
-  enabled: true
-  command: ["npm", "run", "migrate"]
+  enabled: false
+  
 
 ingress:
   enabled: true
@@ -32,9 +32,9 @@ networkPolicy:
   allowTo: []
 
 rollout:
-  enabled: true
+  enabled: false
   canary:
-    autoRollback: true
+    autoRollback: false
     steps:
     - setWeight: 10
     - pause:
