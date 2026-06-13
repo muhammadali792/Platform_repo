@@ -2,7 +2,8 @@ replicaCount: 2
 image:
   registry: "351849325312.dkr.ecr.eu-north-1.amazonaws.com"
   name: notif-repo
-  tag: v1.0.20
+  tag: v1.0.28
+  repository: 351849325312.dkr.ecr.eu-north-1.amazonaws.com/notif-repo
 service:
   port: 3000
 migration:
@@ -17,7 +18,7 @@ hpa:
 networkPolicy:
   enabled: true
   allowFrom:
-    - order-service
+  - order-service
   allowTo: []
 rollout:
   enabled: false
