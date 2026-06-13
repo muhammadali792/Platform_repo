@@ -17,7 +17,6 @@ resources:
 
 migration:
   enabled: false
-  command: ["python", "manage.py", "migrate"]
 
 ingress:
   enabled: true
