@@ -1,4 +1,4 @@
-replicaCount: 2
+replicaCount: 1
 image:
   registry: "351849325312.dkr.ecr.eu-north-1.amazonaws.com"
   name: notif-repo
