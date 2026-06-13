@@ -20,7 +20,7 @@ networkPolicy:
     - order-service
   allowTo: []
 rollout:
-  enabled: true
+  enabled: false
   canary:
     autoRollback: true
     steps:
