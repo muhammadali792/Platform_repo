@@ -7,8 +7,8 @@ image:
 service:
   port: 8002
 migration:
-  enabled: true
-  command: ["npm", "run", "migrate"]
+  enabled: false
+  
 ingress:
   enabled: true
   host: order.cloudaura.online
@@ -29,9 +29,9 @@ networkPolicy:
   - product-service
   allowTo: []
 rollout:
-  enabled: true
+  enabled: false
   canary:
-    autoRollback: true
+    autoRollback: false
     steps:
     - setWeight: 10
     - pause:
