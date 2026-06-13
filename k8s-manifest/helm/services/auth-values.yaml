@@ -43,7 +43,7 @@ networkPolicy:
 rollout:
   enabled: false
   canary:
-    autoRollback: true
+    autoRollback: false
     steps:
     - setWeight: 10
     - pause:
