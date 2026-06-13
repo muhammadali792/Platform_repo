@@ -7,7 +7,7 @@ spec:
   writeBackConfig:
     method: "git"
     gitConfig:
-      repository: "git@github.com:muhammadali792/Platform_repo.git"
+      repository: "https://github.com/muhammadali792/Platform_repo.git"
       branch: "main"
   applicationRefs:
   - namePattern: "auth-service"
