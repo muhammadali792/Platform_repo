@@ -136,6 +136,9 @@ resource "null_resource" "init_db" {
   depends_on = [aws_db_instance.main_db]
   for_each   = { for k, v in local.services : k => v if v.rds }
 
+  triggers = {
+    password = random_password.service_db_pass[each.key].result
+  }
   provisioner "local-exec" {
     command = <<-EOT
       psql -h ${aws_db_instance.main_db.address} -U admin_user -d postgres \
