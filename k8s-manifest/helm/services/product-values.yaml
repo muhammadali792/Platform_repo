@@ -2,14 +2,12 @@ replicaCount: 2
 image:
   name: product-repo
   registry: "351849325312.dkr.ecr.eu-north-1.amazonaws.com"
-  tag: latest
+  tag: v1.0.32
+  repository: 351849325312.dkr.ecr.eu-north-1.amazonaws.com/product-repo
 service:
   port: 8001
-
 migration:
   enabled: false
-  
-
 ingress:
   enabled: true
   host: product.cloudaura.online
@@ -18,19 +16,16 @@ ingress:
     enabled: true
   mtls:
     enabled: false
-
 hpa:
   enabled: true
   minReplicas: 2
   maxReplicas: 3
   cpuUtilization: 70
-
 networkPolicy:
   enabled: true
   allowFrom:
-    - order-service
+  - order-service
   allowTo: []
-
 rollout:
   enabled: false
   canary:
@@ -43,7 +38,6 @@ rollout:
     - pause:
         duration: 60s
     - setWeight: 100
-
 env:
   jwt:
     enabled: false
