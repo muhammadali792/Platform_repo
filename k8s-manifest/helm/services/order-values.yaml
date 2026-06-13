@@ -8,7 +8,6 @@ service:
   port: 8002
 migration:
   enabled: false
-  
 ingress:
   enabled: true
   host: order.cloudaura.online
