@@ -14,24 +14,24 @@ locals {
 # RDS admin access ke liye Master Password
 resource "random_password" "master_db_pass" {
   length  = 24
-  special = true
+  special = false
 }
 
 # Har service ke liye alag database password
 resource "random_password" "service_db_pass" {
   for_each = { for k, v in local.services : k => v if v.rds }
   length   = 16
-  special  = true
+  special  = false
 }
 
 resource "random_password" "jwt_secret" {
   length  = 32
-  special = true
+  special = false
 }
 
 resource "random_password" "redis_pass" {
   length  = 16
-  special = true
+  special = false
 }
 
 # ─────────────────────────────────────────────
